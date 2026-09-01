@@ -1,10 +1,12 @@
 {
-  "name": "backend",
+  "name": "econo-te-ayuda-ia-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Econo Te Ayuda IA — backend (location engine + AI assistant)",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "db:ingest": "node scripts/ingest.js",
+    "db:ingest:dry": "node scripts/ingest.js --dry-run"
   },
   "keywords": [],
   "author": "",
@@ -17,14 +19,15 @@
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "csv-parse": "^5.6.0",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "express": "^4.21.1",
     "multer": "^1.4.5-lts.2",
     "multer-storage-cloudinary": "^4.0.0",
     "openai": "^4.67.3",
     "pdfkit": "^0.17.1",
-    "pg": "^8.14.1",
-    "sqlite3": "^5.1.7"
+    "pg": "^8.23.0",
+    "sqlite3": "^5.1.7",
+    "xlsx": "^0.18.5"
   },
   "engines": {
     "node": "20.x"
