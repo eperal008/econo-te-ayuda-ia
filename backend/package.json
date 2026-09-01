@@ -2,9 +2,11 @@
   "name": "econo-te-ayuda-ia-backend",
   "version": "1.0.0",
   "description": "Econo Te Ayuda IA — backend (location engine + AI assistant)",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
+    "start:legacy": "node index.js",
+    "test:acceptance": "node scripts/acceptance.js",
     "db:ingest": "node scripts/ingest.js",
     "db:ingest:dry": "node scripts/ingest.js --dry-run"
   },
