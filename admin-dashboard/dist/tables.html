@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tables - Admin One Tailwind CSS Admin Dashboard</title>
+
+  <!-- Tailwind is included -->
+  <link rel="stylesheet" href="css/main.css?v=1750865291688">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png"/>
+  <link rel="mask-icon" href="safari-pinned-tab.svg" color="#00b4b6"/>
+
+  <meta name="description" content="Admin One - free Tailwind dashboard">
+
+  <meta property="og:url" content="https://justboil.github.io/admin-one-tailwind/">
+  <meta property="og:site_name" content="JustBoil.me">
+  <meta property="og:title" content="Admin One HTML">
+  <meta property="og:description" content="Admin One - free Tailwind dashboard">
+  <meta property="og:image" content="https://justboil.me/images/one-tailwind/repository-preview-hi-res.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="960">
+
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Admin One HTML">
+  <meta property="twitter:description" content="Admin One - free Tailwind dashboard">
+  <meta property="twitter:image:src" content="https://justboil.me/images/one-tailwind/repository-preview-hi-res.png">
+  <meta property="twitter:image:width" content="1920">
+  <meta property="twitter:image:height" content="960">
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-130795909-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-130795909-1');
+  </script>
+
+</head>
+<body>
+
+<div id="app">
+
+<nav id="navbar-main" class="navbar is-fixed-top">
+  <div class="navbar-brand">
+    <a class="navbar-item mobile-aside-button">
+      <span class="icon"><i class="mdi mdi-forwardburger mdi-24px"></i></span>
+    </a>
+  </div>
+  <div class="navbar-menu" id="navbar-menu">
+  </div>
+</nav>
+<aside class="aside is-placed-left is-expanded">
+  <div class="aside-tools">
+    <div>
+      Product <b class="font-black">Admin</b>
+    </div>
+  </div>
+  <div class="menu is-menu-main">
+    <ul class="menu-list">
+      <li class="active">
+        <a href="tables.html">
+          <span class="icon"><i class="mdi mdi-database"></i></span>
+          <span class="menu-item-label">Product Database</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<section class="is-title-bar">
+  <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+    <ul>
+      <li>Admin</li>
+      <li>Product Database</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section main-section">
+  <div class="card mb-6">
+    <header class="card-header"><p class="card-header-title"><span class="icon"><i class="mdi mdi-sync-alert"></i></span>Bot Administration</p></header>
+    <div class="card-content">
+      <p class="mb-4">If you have added products with new categories, click this button to make the bot aware of them. The bot will restart and be updated within a minute.</p>
+      <div class="field"><div class="control"><button id="restart-bot-button" class="button red">Restart and Refresh Bot</button></div></div>
+    </div>
+  </div>
+
+  <div class="card mb-6">
+    <header class="card-header"><p class="card-header-title"><span class="icon"><i class="mdi mdi-plus-box-outline"></i></span>Add New Product</p></header>
+    <div class="card-content">
+      <form id="add-product-form">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          <div class="field"><label class="label">Product Name (ES)</label><div class="control"><input name="name_es" required class="input" type="text" placeholder="Nombre del producto"></div></div>
+          <div class="field"><label class="label">Product Name (EN)</label><div class="control"><input name="name_en" class="input" type="text" placeholder="Product name"></div></div>
+          <div class="field"><label class="label">Category</label><div class="control"><input name="category" required class="input" type="text" placeholder="Categoría del producto"></div></div>
+          <!-- <div class="field"><label class="label">Brand</label><div class="control"><input name="brand" class="input" type="text" placeholder="Marca del producto"></div></div> -->
+          <div class="field"><label class="label">Aisle</label><div class="control"><input name="aisle" required class="input" type="text" placeholder="e.g., 5A"></div></div>
+          <!--<div class="field"><label class="label">Side</label><div class="control"><input name="side" class="input" type="text" placeholder="e.g., A or B"></div></div> -->
+        </div><hr/>
+        <!-- <h2 class="text-xl font-bold mt-4 mb-2">Location Descriptions</h2> -->
+        <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4"> -->
+          <!-- <div class="field"><label class="label">Shelf Area (ES)</label><div class="control"><textarea name="shelf_area_es" class="textarea" placeholder="Descripción de la góndola"></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">Shelf Area (EN)</label><div class="control"><textarea name="shelf_area_en" class="textarea" placeholder="Shelf area description"></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Main Entrance (ES)</label><div class="control"><textarea name="loc_main_entrance_es" class="textarea" placeholder="Desde la entrada principal..."></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Main Entrance (EN)</label><div class="control"><textarea name="loc_main_entrance_en" class="textarea" placeholder="From the main entrance..."></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Rear Entrance (ES)</label><div class="control"><textarea name="loc_rear_entrance_es" class="textarea" placeholder="Desde la entrada trasera..."></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Rear Entrance (EN)</label><div class="control"><textarea name="loc_rear_entrance_en" class="textarea" placeholder="From the rear entrance..."></textarea></div></div> -->
+        <!-- </div> --><hr/>
+        <h2 class="text-xl font-bold mt-4 mb-2">Marketing / Ad Offer</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="field"><label class="label">Ad Offer - Text (ES)</label><div class="control"><textarea name="ad_offer_text_es" class="textarea" placeholder="e.g., ¡20% de descuento!"></textarea></div></div>
+            <div class="field"><label class="label">Ad Offer - Text (EN)</label><div class="control"><textarea name="ad_offer_text_en" class="textarea" placeholder="e.g., 20% off!"></textarea></div></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="field"><label class="label">Ad Offer - Image File</label><div class="control"><input name="ad_image_file" class="input" type="file" accept="image/*"></div><p class="help">Upload an image from your PC.</p></div>
+            <div class="field"><label class="label">Or Paste Image URL</label><div class="control"><input name="ad_offer_image_url" class="input" type="text" placeholder="https://example.com/ad-image.png"></div></div>
+        </div>
+        <hr class="my-6">
+        <div class="field"><div class="control"><button type="submit" class="button green">Add Product</button></div></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card has-table">
+    <header class="card-header"><p class="card-header-title"><span class="icon"><i class="mdi mdi-package-variant-closed"></i></span>Products</p></header>
+    <div class="card-content overflow-x-auto">
+      <table>
+        <thead><tr><th>ID</th><th>Name (ES)</th><th>Category</th><!-- <th>Brand</th> --><th>Aisle</th><th>Actions</th></tr></thead>
+        <tbody id="product-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div id="edit-product-modal" class="modal" style="display: none;">
+    <div class="modal-background --jb-modal-close"></div>
+    <div class="modal-card">
+        <header class="modal-card-head"><p class="modal-card-title">Edit Product</p></header>
+        <section class="modal-card-body">
+            <form id="edit-product-form">
+                <input type="hidden" name="id">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div class="field"><label class="label">Product Name (ES)</label><div class="control"><input name="name_es" required class="input" type="text"></div></div>
+                  <div class="field"><label class="label">Product Name (EN)</label><div class="control"><input name="name_en" class="input" type="text"></div></div>
+                  <div class="field"><label class="label">Category</label><div class="control"><input name="category" required class="input" type="text"></div></div>
+                  <!-- <div class="field"><label class="label">Brand</label><div class="control"><input name="brand" class="input" type="text"></div></div> -->
+                  <div class="field"><label class="label">Aisle</label><div class="control"><input name="aisle" required class="input" type="text"></div></div>
+                  <!-- <div class="field"><label class="label">Side</label><div class="control"><input name="side" class="input" type="text"></div></div> -->
+                </div><hr/>
+                <!-- <h2 class="text-xl font-bold mt-4 mb-2">Location Descriptions</h2> -->
+                <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4"> -->
+                  <!-- <div class="field"><label class="label">Shelf Area (ES)</label><div class="control"><textarea name="shelf_area_es" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">Shelf Area (EN)</label><div class="control"><textarea name="shelf_area_en" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Main Entrance (ES)</label><div class="control"><textarea name="loc_main_entrance_es" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Main Entrance (EN)</label><div class="control"><textarea name="loc_main_entrance_en" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Rear Entrance (ES)</label><div class="control"><textarea name="loc_rear_entrance_es" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Rear Entrance (EN)</label><div class="control"><textarea name="loc_rear_entrance_en" class="textarea"></textarea></div></div> -->
+                <!-- </div> --><hr/>
+                <h2 class="text-xl font-bold mt-4 mb-2">Marketing / Ad Offer</h2>
+                <div id="edit-image-preview-container" class="field" style="display: none;">
+                    <label class="label">Current Ad Image</label>
+                    <div class="flex items-center">
+                        <img id="edit-image-preview" src="" alt="Image Preview" class="h-20 w-20 object-cover rounded-md mr-4">
+                        <button id="remove-image-button" type="button" class="button small red">Remove Image</button>
+                    </div>
+                </div>
+                <div id="edit-image-upload-container" class="field">
+                    <div class="field"><label class="label">Ad Offer - Text (ES)</label><div class="control"><textarea name="ad_offer_text_es" class="textarea"></textarea></div></div>
+                    <div class="field"><label class="label">Ad Offer - Text (EN)</label><div class="control"><textarea name="ad_offer_text_en" class="textarea"></textarea></div></div>
+                    <div class="field mt-4"><label class="label">Upload New Image</label><div class="control"><input name="ad_image_file" class="input" type="file" accept="image/*"></div><p class="help">Choose a new file to replace the existing image.</p></div>
+                    <div class="field"><label class="label">Or Paste Image URL</label><div class="control"><input name="ad_offer_image_url" class="input" type="text"></div></div>
+                </div>
+            </form>
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button --jb-modal-close">Cancel</button>
+            <button class="button blue" id="save-edit-button">Save changes</button>
+        </footer>
+    </div>
+</div>
+
+</html>
+
+<div id="sample-modal" class="modal">
+  <div class="modal-background --jb-modal-close"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Sample modal</p>
+    </header>
+    <section class="modal-card-body">
+      <p>Lorem ipsum dolor sit amet <b>adipiscing elit</b></p>
+      <p>This is sample modal</p>
+    </section>
+    <footer class="modal-card-foot">
+      <button class="button --jb-modal-close">Cancel</button>
+      <button class="button red --jb-modal-close">Confirm</button>
+    </footer>
+  </div>
+</div>
+
+<div id="sample-modal-2" class="modal">
+  <div class="modal-background --jb-modal-close"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Sample modal</p>
+    </header>
+    <section class="modal-card-body">
+      <p>Lorem ipsum dolor sit amet <b>adipiscing elit</b></p>
+      <p>This is sample modal</p>
+    </section>
+    <footer class="modal-card-foot">
+      <button class="button --jb-modal-close">Cancel</button>
+      <button class="button blue --jb-modal-close">Confirm</button>
+    </footer>
+  </div>
+</div>
+
+</div>
+
+<!-- Scripts below are for demo only -->
+<script type="text/javascript" src="js/main.min.js?v=1750865291688"></script>
+<script type="text/javascript" src="js/dashboard.js?v=1750865291688" defer></script>
+
+
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '658339141622648');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=658339141622648&ev=PageView&noscript=1"/></noscript>
+
+<!-- Icons below are for demo only. Feel free to use any icon pack. Docs: https://bulma.io/documentation/elements/icon/ -->
+<link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.9.95/css/materialdesignicons.min.css">
+
+</body>
+</html>

@@ -1,0 +1,133 @@
+/* src/BathroomGuidePage.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.bathroom-guide-page-simple {
+  display: flex;
+  flex-direction: column;
+  padding: 20px; /* Overall padding for the page */
+  font-family: 'Inter', Arial, sans-serif;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: #d32f2f; /* Base red background from the image */
+  color: #ffffff; /* Default text color (white) */
+}
+
+.header-container-guide {
+  display: flex;
+  align-items: center; /* Vertically align button and title */
+  margin-bottom: 30px; /* Space below the header section */
+  width: 100%;
+}
+
+.top-back-button {
+  display: inline-flex; /* Align icon and text, and prevent taking full width */
+  align-items: center;
+  background-color: #ffffff; /* White button background */
+  color: #d32f2f; /* Red text color, matching the page background */
+  padding: 10px 18px; /* Adjust padding to match image's button size */
+  text-decoration: none;
+  border-radius: 20px; /* Pill-shaped corners like the image */
+  font-size: 1em;   /* Adjust font size as needed */
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-right: 20px; /* Space between the button and the title */
+  flex-shrink: 0; /* Prevent the button from shrinking if the title is long */
+}
+
+.top-back-button .arrow-icon {
+  margin-right: 8px; /* Space between arrow and text */
+  font-size: 1.2em; /* Make arrow slightly more prominent */
+}
+
+.top-back-button:hover {
+  background-color: #f0f0f0; /* Slightly off-white on hover */
+  transform: translateY(-1px);
+}
+
+.top-back-button:active {
+  transform: translateY(0px);
+}
+
+/* Styles for the title within the new header structure */
+.bathroom-guide-page-simple .header-container-guide h1 {
+  font-size: 2.2em;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0; /* Remove default h1 margin for better alignment */
+  text-align: center; /* MODIFIED: Align title text to the center */
+  flex-grow: 1; /* Allow title to take available space (text will center within this space) */
+}
+
+.content-container-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the paragraph and the main kiosk button */
+  text-align: center;
+  width: 100%;
+  flex-grow: 1; /* Allow this container to take remaining vertical space */
+  justify-content: top; /* Align content to the top within this container */
+  padding-top: 20px; /* Add some space if needed from the header */
+}
+
+/* Styles for the paragraph within the new content structure */
+.bathroom-guide-page-simple .content-container-guide p {
+  font-size: 1.7em;
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-bottom: 80px;
+  color: #ffffff;
+}
+
+/* Existing .back-to-kiosk-button styles */
+.back-to-kiosk-button {
+  background-color: #ffffff; /* White button background */
+  color: #d32f2f; /* Red text color */
+  padding: 12px 30px;
+  text-decoration: none;
+  border-radius: 8px; /* Slightly rounded corners */
+  font-size: 1.1em;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.back-to-kiosk-button:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-1px);
+}
+
+.back-to-kiosk-button:active {
+  transform: translateY(0px);
+}
+
+@media (max-width: 768px) { /* Target tablets and mobile phones */
+  .header-container-guide {
+    flex-direction: column; /* Stack children (button and title) vertically */
+    align-items: flex-start; /* Align children's containers to the left */
+  }
+
+  .top-back-button {
+    margin-right: 0; /* Remove the right margin, as it's no longer side-by-side */
+    margin-bottom: 15px; /* Add space below the button, before the title */
+  }
+
+  .bathroom-guide-page-simple .header-container-guide h1 {
+    font-size: 1.8em; /* Slightly reduce title font size for better fit on mobile */
+    width: 100%;      /* Ensure title block takes full available width below the button */
+    text-align: center; /* MODIFIED: Ensure text is centered within the h1 block */
+  }
+}
+
+@media (max-width: 480px) { /* Optional: Further adjustments for very small screens */
+  .bathroom-guide-page-simple .header-container-guide h1 {
+    font-size: 1.6em; /* Make title even smaller */
+    text-align: center; /* MODIFIED: Ensure text is centered */
+  }
+
+  .top-back-button {
+    padding: 8px 15px; /* Slightly smaller button */
+    font-size: 0.95em;
+  }
+}

@@ -1,0 +1,282 @@
+/* src/ChatPage.css */
+.chat-page {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Make chat-page grow vertically within .app */
+    width: 100%; /* Make chat-page take full width within .app's padding */
+    min-height: 0; /* Essential for nested flex elements */
+    background-color: #d32f2f; /* Red background for the entire screen */
+    margin: 0; /* Remove any default margins */
+}
+
+.chat-header {
+    width: 100%;
+    background-color: #d32f2f;
+    padding: 5px 0; /* Small gap above and below logo */
+    margin: 0; /* Ensure no margin */
+    height: 120px; /* Allow header to grow based on logo and padding */
+    line-height: 0; /* Eliminate line spacing */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.logo {
+    margin: 0; /* Ensure no margin */
+    padding: 0; /* Ensure no padding */
+    height: 25px; /* Same as previous update for desktop */
+    max-width: 150px; /* Constrain width to prevent stretching */
+    width: auto; /* Maintain aspect ratio */
+    object-fit: contain; /* Ensure proper scaling */
+}
+
+.chat-content {
+    flex: 1 1 0; /* Explicit flex shorthand: grow=1, shrink=1, basis=0 */
+    width: 100%;
+    max-width: 1344px; /* 70% of 1920px for a 1920x1080 screen */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff; /* White background for the chat area */
+    overflow: hidden;
+    min-height: 0; /* Keep this */
+}
+
+.messages-header {
+    background-color: #fff;
+    padding: 10px 15px 0 15px; /* Removed padding-bottom to eliminate gap */
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.online-status {
+    color: #333;
+    display: flex;
+    align-items: center;
+    font-size: 22px !important; /* Increased font size for desktop, added !important to ensure it applies */
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: green;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.chat-messages {
+    flex: 1 1 0;
+    padding: 0 15px 15px 15px; /* Ensure no padding-top */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #fff;
+    min-height: 0;
+}
+
+.message {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    word-wrap: break-word;
+    margin: 10px 0;
+}
+
+.message:first-child {
+    margin-top: 0; /* Ensure no gap above the first message */
+}
+
+.message.bot {
+    background-color: #fff;
+    color: #000;
+    align-self: flex-start;
+    border: 1px solid #ddd;
+}
+
+.message.user {
+    background-color: #d32f2f;
+    color: #fff;
+    align-self: flex-end;
+}
+
+.aisle-name {
+    background-color: #ffff99; /* Light yellow highlight */
+    font-size: 1.2em; /* Slightly larger font size */
+    font-weight: bold; /* Bold text */
+    padding: 2px 4px; /* Small padding to make the highlight visible */
+    border-radius: 4px; /* Rounded corners for the highlight */
+}
+
+.chat-footer {
+    padding: 20px 0; /* Already increased padding to make input bar more visible */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff; /* White background for footer area */
+    width: 100%;
+    border-top: 1px solid #ddd;
+}
+
+.chat-input {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px; /* Already increased margin to add space before the button */
+    padding: 0; /* Ensure no padding to extend input field to edges */
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 20px 8px; /* Reduced padding-left and padding-right to extend closer to edges */
+    border: none;
+    border-radius: 20px;
+    font-size: 28px !important; /* Increased font size for desktop, added !important */
+    background-color: #e0e0e0;
+    margin-right: 0; /* Already removed margin to extend input field to the edge */
+    min-width: 0;
+}
+
+.chat-input input::placeholder {
+    color: #666; /* Darker placeholder color for readability */
+}
+
+.chat-input .send-button {
+    background: none;
+    border: none;
+    color: #d32f2f; /* Red color to match the theme */
+    cursor: pointer;
+    font-size: 36px !important; /* Increased font size for desktop, added !important */
+    padding: 0 5px;
+    flex-shrink: 0;
+    margin: 0;
+    align-self: center;
+}
+
+.dashboard-link {
+    display: inline-block;
+    padding: 15px 30px; /* Already increased padding to make button larger */
+    background-color: #00aaff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 24px !important; /* Increased font size for desktop, added !important */
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+    .chat-header {
+        padding: 3px 0; /* Small gap above and below logo for mobile */
+        height: 40px; /* Allow header to grow based on logo and padding */
+    }
+
+    .logo {
+        height: 15px; /* Same as previous update for mobile */
+        max-width: 100px; /* Constrain width for mobile */
+    }
+
+    .chat-content {
+        max-width: 100%; /* Full width on mobile */
+    }
+
+    .messages-header {
+        padding: 8px 10px 0 10px; /* Removed padding-bottom for mobile */
+    }
+
+    .online-status {
+        font-size: 18px !important; /* Increased font size for mobile, added !important */
+    }
+
+    .chat-messages {
+        padding: 0 10px 10px 10px; /* Ensure no padding-top for mobile */
+    }
+
+    .message {
+        padding: 6px 10px;
+        font-size: 16px;
+    }
+
+    .message:first-child {
+        margin-top: 0; /* Ensure no gap above the first message */
+    }
+
+    .aisle-name {
+        font-size: 1.6em; /* Same as ChatPopup mobile */
+    }
+
+    .chat-footer {
+        padding: 15px 0; /* Already increased padding for mobile */
+    }
+
+    .chat-input {
+        padding: 0; /* Ensure no padding for mobile */
+        margin-bottom: 15px; /* Already increased margin for mobile */
+        flex-direction: row; /* Ensure row layout */
+        align-items: stretch; /* Prevent centering */
+    }
+
+    .chat-input input {
+        padding: 16px 6px; /* Reduced padding-left and padding-right to extend closer to edges */
+        font-size: 20px !important; /* Increased font size for mobile, added !important */
+        text-align: left; /* Align text to the left */
+        margin-right: 0; /* Already removed margin to extend input field to the edge */
+        background-color: #e0e0e0; /* Grayish background for contrast */
+    }
+
+    .chat-input input::placeholder {
+        color: #666; /* Darker placeholder color for readability */
+    }
+
+    .chat-input .send-button {
+        font-size: 30px !important; /* Increased font size for mobile, added !important */
+        align-self: center; /* Vertically align with the input */
+        color: #d32f2f; /* Ensure the arrow is visible against white background */
+    }
+
+    .dashboard-link {
+        padding: 12px 24px; /* Already increased padding for mobile */
+        font-size: 18px !important; /* Increased font size for mobile, added !important */
+    }
+}
+
+/* Desktop-specific styles */
+@media (min-width: 769px) {
+    .logo {
+        height: 25px; /* Same as previous update for desktop */
+    }
+
+    .messages-header {
+        padding: 30px 30px 30px 30px; /* Removed padding-bottom for desktop */
+    }
+
+    .online-status {
+        font-size: 25px !important;
+    }
+
+    .message {
+        padding: 20px 25px;
+        font-size: 25px;
+    }
+
+    .aisle-name {
+        font-size: 2.2em; /* Same as ChatPopup desktop */
+    }
+
+    .chat-input {
+        padding: 0; /* Ensure no padding for desktop */
+    }
+
+    .chat-input input {
+        padding: 16px 8px; /* Reduced padding-left and padding-right to extend closer to edges */
+        font-size: 28px !important;
+    }
+
+    .chat-input .send-button {
+        font-size: 36px !important;
+    }
+}

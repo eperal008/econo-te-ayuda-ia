@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<section class="is-title-bar">
+  <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+    <ul>
+      <li>Admin</li>
+      <li>Product Database</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section main-section">
+  <div class="card mb-6">
+    <header class="card-header"><p class="card-header-title"><span class="icon"><i class="mdi mdi-sync-alert"></i></span>Bot Administration</p></header>
+    <div class="card-content">
+      <p class="mb-4">If you have added products with new categories, click this button to make the bot aware of them. The bot will restart and be updated within a minute.</p>
+      <div class="field"><div class="control"><button id="restart-bot-button" class="button red">Restart and Refresh Bot</button></div></div>
+    </div>
+  </div>
+
+  <div class="card mb-6">
+    <header class="card-header"><p class="card-header-title"><span class="icon"><i class="mdi mdi-plus-box-outline"></i></span>Add New Product</p></header>
+    <div class="card-content">
+      <form id="add-product-form">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          <div class="field"><label class="label">Product Name (ES)</label><div class="control"><input name="name_es" required class="input" type="text" placeholder="Nombre del producto"></div></div>
+          <div class="field"><label class="label">Product Name (EN)</label><div class="control"><input name="name_en" class="input" type="text" placeholder="Product name"></div></div>
+          <div class="field"><label class="label">Category</label><div class="control"><input name="category" required class="input" type="text" placeholder="Categoría del producto"></div></div>
+          <!-- <div class="field"><label class="label">Brand</label><div class="control"><input name="brand" class="input" type="text" placeholder="Marca del producto"></div></div> -->
+          <div class="field"><label class="label">Aisle</label><div class="control"><input name="aisle" required class="input" type="text" placeholder="e.g., 5A"></div></div>
+          <!--<div class="field"><label class="label">Side</label><div class="control"><input name="side" class="input" type="text" placeholder="e.g., A or B"></div></div> -->
+        </div><hr/>
+        <!-- <h2 class="text-xl font-bold mt-4 mb-2">Location Descriptions</h2> -->
+        <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4"> -->
+          <!-- <div class="field"><label class="label">Shelf Area (ES)</label><div class="control"><textarea name="shelf_area_es" class="textarea" placeholder="Descripción de la góndola"></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">Shelf Area (EN)</label><div class="control"><textarea name="shelf_area_en" class="textarea" placeholder="Shelf area description"></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Main Entrance (ES)</label><div class="control"><textarea name="loc_main_entrance_es" class="textarea" placeholder="Desde la entrada principal..."></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Main Entrance (EN)</label><div class="control"><textarea name="loc_main_entrance_en" class="textarea" placeholder="From the main entrance..."></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Rear Entrance (ES)</label><div class="control"><textarea name="loc_rear_entrance_es" class="textarea" placeholder="Desde la entrada trasera..."></textarea></div></div> -->
+          <!-- <div class="field"><label class="label">From Rear Entrance (EN)</label><div class="control"><textarea name="loc_rear_entrance_en" class="textarea" placeholder="From the rear entrance..."></textarea></div></div> -->
+        <!-- </div> --><hr/>
+        <h2 class="text-xl font-bold mt-4 mb-2">Marketing / Ad Offer</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="field"><label class="label">Ad Offer - Text (ES)</label><div class="control"><textarea name="ad_offer_text_es" class="textarea" placeholder="e.g., ¡20% de descuento!"></textarea></div></div>
+            <div class="field"><label class="label">Ad Offer - Text (EN)</label><div class="control"><textarea name="ad_offer_text_en" class="textarea" placeholder="e.g., 20% off!"></textarea></div></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="field"><label class="label">Ad Offer - Image File</label><div class="control"><input name="ad_image_file" class="input" type="file" accept="image/*"></div><p class="help">Upload an image from your PC.</p></div>
+            <div class="field"><label class="label">Or Paste Image URL</label><div class="control"><input name="ad_offer_image_url" class="input" type="text" placeholder="https://example.com/ad-image.png"></div></div>
+        </div>
+        <hr class="my-6">
+        <div class="field"><div class="control"><button type="submit" class="button green">Add Product</button></div></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card has-table">
+    <header class="card-header"><p class="card-header-title"><span class="icon"><i class="mdi mdi-package-variant-closed"></i></span>Products</p></header>
+    <div class="card-content overflow-x-auto">
+      <table>
+        <thead><tr><th>ID</th><th>Name (ES)</th><th>Category</th><!-- <th>Brand</th> --><th>Aisle</th><th>Actions</th></tr></thead>
+        <tbody id="product-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div id="edit-product-modal" class="modal" style="display: none;">
+    <div class="modal-background --jb-modal-close"></div>
+    <div class="modal-card">
+        <header class="modal-card-head"><p class="modal-card-title">Edit Product</p></header>
+        <section class="modal-card-body">
+            <form id="edit-product-form">
+                <input type="hidden" name="id">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div class="field"><label class="label">Product Name (ES)</label><div class="control"><input name="name_es" required class="input" type="text"></div></div>
+                  <div class="field"><label class="label">Product Name (EN)</label><div class="control"><input name="name_en" class="input" type="text"></div></div>
+                  <div class="field"><label class="label">Category</label><div class="control"><input name="category" required class="input" type="text"></div></div>
+                  <!-- <div class="field"><label class="label">Brand</label><div class="control"><input name="brand" class="input" type="text"></div></div> -->
+                  <div class="field"><label class="label">Aisle</label><div class="control"><input name="aisle" required class="input" type="text"></div></div>
+                  <!-- <div class="field"><label class="label">Side</label><div class="control"><input name="side" class="input" type="text"></div></div> -->
+                </div><hr/>
+                <!-- <h2 class="text-xl font-bold mt-4 mb-2">Location Descriptions</h2> -->
+                <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4"> -->
+                  <!-- <div class="field"><label class="label">Shelf Area (ES)</label><div class="control"><textarea name="shelf_area_es" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">Shelf Area (EN)</label><div class="control"><textarea name="shelf_area_en" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Main Entrance (ES)</label><div class="control"><textarea name="loc_main_entrance_es" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Main Entrance (EN)</label><div class="control"><textarea name="loc_main_entrance_en" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Rear Entrance (ES)</label><div class="control"><textarea name="loc_rear_entrance_es" class="textarea"></textarea></div></div> -->
+                  <!-- <div class="field"><label class="label">From Rear Entrance (EN)</label><div class="control"><textarea name="loc_rear_entrance_en" class="textarea"></textarea></div></div> -->
+                <!-- </div> --><hr/>
+                <h2 class="text-xl font-bold mt-4 mb-2">Marketing / Ad Offer</h2>
+                <div id="edit-image-preview-container" class="field" style="display: none;">
+                    <label class="label">Current Ad Image</label>
+                    <div class="flex items-center">
+                        <img id="edit-image-preview" src="" alt="Image Preview" class="h-20 w-20 object-cover rounded-md mr-4">
+                        <button id="remove-image-button" type="button" class="button small red">Remove Image</button>
+                    </div>
+                </div>
+                <div id="edit-image-upload-container" class="field">
+                    <div class="field"><label class="label">Ad Offer - Text (ES)</label><div class="control"><textarea name="ad_offer_text_es" class="textarea"></textarea></div></div>
+                    <div class="field"><label class="label">Ad Offer - Text (EN)</label><div class="control"><textarea name="ad_offer_text_en" class="textarea"></textarea></div></div>
+                    <div class="field mt-4"><label class="label">Upload New Image</label><div class="control"><input name="ad_image_file" class="input" type="file" accept="image/*"></div><p class="help">Choose a new file to replace the existing image.</p></div>
+                    <div class="field"><label class="label">Or Paste Image URL</label><div class="control"><input name="ad_offer_image_url" class="input" type="text"></div></div>
+                </div>
+            </form>
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button --jb-modal-close">Cancel</button>
+            <button class="button blue" id="save-edit-button">Save changes</button>
+        </footer>
+    </div>
+</div>
+
+</html>

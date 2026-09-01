@@ -1,0 +1,298 @@
+/* src/ChatPopup.css */
+
+/* Overlay for the popup */
+.chat-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's above other content */
+}
+
+/* Base styles for the main chat popup container */
+.chat-popup {
+    /* === REMOVED background-color: #d32f2f; === */
+    border-radius: 10px; /* Overall rounded corners */
+    display: flex;
+    flex-direction: column; /* Stack header, messages, input vertically */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Drop shadow */
+    max-height: 80vh; /* Limit height */
+    overflow: hidden; /* Crucial: Clips children to the rounded corners */
+    background-color: #fff; /* Set default background to white for the container */
+    box-sizing: border-box; /* Include padding/border in element's total width/height */
+}
+
+/* Header section */
+.chat-header {
+    width: 100%;
+    background-color: #d32f2f; /* Red background ONLY for header */
+    color: #fff; /* White text/elements inside header */
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* === ADD Top radius to match parent === */
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-sizing: border-box;
+    min-height: 80px; /* Ensure enough height for logo */
+}
+
+/* Logo inside the header */
+.chat-popup-container .logo {
+    max-height: 50px; /* Restrict height to prevent overflow */
+    width: auto; /* Maintain aspect ratio */
+    object-fit: contain; /* Ensure logo scales without cropping */
+    margin: 0 auto; /* Center the logo */
+}
+
+/* Message container area */
+.chat-messages {
+    flex: 1; /* Allows this section to grow and fill available space */
+    width: 100%;
+    padding: 10px 0; /* Add some padding top/bottom */
+    overflow-y: auto; /* Enable scrolling for messages */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Space between messages */
+    background-color: #fff; /* White background for message area */
+    position: relative; /* For potential absolute positioning inside */
+    min-height: 300px; /* Minimum height */
+    box-sizing: border-box;
+}
+
+/* Header within the message area (e.g., "Yoli is online...") */
+.messages-header {
+    background-color: #fff;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd; /* Separator line */
+    box-sizing: border-box;
+    position: sticky; /* Optional: Make it stick to the top on scroll */
+    top: 0; /* Required for sticky */
+    z-index: 1; /* Ensure it's above scrolling messages */
+}
+
+/* Online status text */
+.online-status {
+    color: #333;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+}
+
+/* Green dot for online status */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: green;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+/* Close button */
+.close-button {
+    background: none;
+    border: none;
+    color: #333; /* Color of the 'X' */
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0;
+}
+
+/* Individual message bubbles */
+.message {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    word-wrap: break-word; /* Wrap long words */
+    margin: 5px 15px; /* Vertical and horizontal margin */
+    box-sizing: border-box;
+}
+
+/* Bot message style */
+.message.bot {
+    background-color: #fff; /* White background */
+    color: #000; /* Black text */
+    align-self: flex-start; /* Align to the left */
+    border: 1px solid #ddd; /* Light grey border */
+}
+
+/* User message style */
+.message.user {
+    background-color: #d32f2f; /* Red background */
+    color: #fff; /* White text */
+    align-self: flex-end; /* Align to the right */
+}
+
+/* Style for highlighting aisle names (example) */
+.aisle-name {
+    background-color: #ffff99; /* Light yellow highlight */
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+/* Chat input area */
+.chat-input {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #fff !important; /* White background */
+    border-top: 1px solid #ddd !important; /* Separator line above input */
+    /* === ADD Bottom radius to match parent === */
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    box-sizing: border-box;
+}
+
+/* Text input field */
+.chat-input input {
+    flex: 1; /* Take up available space */
+    padding: 8px 12px;
+    border: none; /* Remove default border */
+    border-radius: 20px; /* Rounded input field */
+    font-size: 20px;
+    background-color: #e0e0e0 !important; /* Light grey input background */
+    margin-right: 10px; /* Space before send button */
+    color: #333; /* Text color */
+}
+
+/* Placeholder text style */
+.chat-input input::placeholder {
+    color: #666;
+}
+
+/* Send button */
+.chat-input .send-button {
+    background: none;
+    border: none;
+    color: #d32f2f; /* Red arrow color */
+    cursor: pointer;
+    font-size: 20px;
+    padding: 0;
+}
+
+/* ======================== */
+/* Mobile-specific styles   */
+/* ======================== */
+.chat-popup.mobile {
+    width: 90%;
+    max-width: 400px;
+    max-height: 70vh; /* Adjusted slightly */
+}
+
+.chat-popup.mobile .logo {
+    height: 45px; /* Slightly smaller logo */
+}
+
+.chat-popup.mobile .chat-messages {
+    min-height: 250px;
+}
+
+.chat-popup.mobile .messages-header {
+    padding: 8px 10px;
+}
+
+.chat-popup.mobile .online-status {
+    font-size: 15px;
+}
+
+.chat-popup.mobile .close-button {
+    font-size: 1em;
+}
+
+.chat-popup.mobile .message {
+    padding: 6px 10px;
+    font-size: 17px; /* Slightly smaller text */
+    margin: 4px 10px;
+}
+
+.chat-popup.mobile .aisle-name {
+    font-size: 1.6em;
+}
+
+.chat-popup.mobile .chat-input {
+    padding: 8px 10px;
+    background-color: #fff !important; /* Ensure white */
+    border-top: 1px solid #ddd !important;
+    /* Inherits bottom radius from base .chat-input rule */
+}
+
+.chat-popup.mobile .chat-input input {
+    padding: 6px 10px;
+    font-size: 14px;
+    margin-right: 5px;
+    background-color: #e0e0e0 !important; /* Ensure grey */
+}
+
+.chat-popup.mobile .chat-input .send-button {
+    font-size: 18px; /* Slightly smaller */
+    align-self: center;
+    color: #d32f2f; /* Ensure red */
+}
+
+/* ======================== */
+/* Desktop-specific styles  */
+/* ======================== */
+.chat-popup.desktop {
+    width: 80%;
+    max-width: 600px;
+    max-height: 80vh;
+}
+
+.chat-popup.desktop .logo {
+    height: 55px; /* Adjusted desktop logo size */
+}
+
+.chat-popup.desktop .chat-messages {
+    min-height: 400px; /* Adjusted desktop message height */
+}
+
+.chat-popup.desktop .messages-header {
+    padding: 10px 15px;
+}
+
+.chat-popup.desktop .online-status {
+    font-size: 18px;
+}
+
+.chat-popup.desktop .close-button {
+    font-size: 1.2em;
+}
+
+.chat-popup.desktop .message {
+    padding: 8px 12px;
+    font-size: 20px; /* Adjusted desktop message font size */
+    margin: 5px 15px;
+}
+
+.chat-popup.desktop .aisle-name {
+    font-size: 2.2em;
+}
+
+.chat-popup.desktop .chat-input {
+    padding: 10px 15px;
+    background-color: #fff !important; /* Ensure white */
+    border-top: 1px solid #ddd !important;
+     /* Inherits bottom radius from base .chat-input rule */
+}
+
+.chat-popup.desktop .chat-input input {
+    padding: 8px 12px;
+    font-size: 16px;
+    background-color: #e0e0e0 !important; /* Ensure grey */
+}
+
+.chat-popup.desktop .chat-input .send-button {
+    font-size: 20px;
+}

@@ -1,0 +1,488 @@
+/* VoiceAndChatSearchPage.css */
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.vcs-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px; /* Base padding */
+  font-family: 'Inter', Arial, sans-serif;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: #d32f2f;
+  color: #ffffff;
+  overflow-x: hidden; /* Prevent horizontal scroll on the page container itself */
+}
+
+.vcs-header {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px; /* Adjusted margin */
+  position: relative;
+  justify-content: center;
+  padding: 0 10px; /* Add some horizontal padding to header */
+  box-sizing: border-box;
+}
+
+.vcs-back-button {
+  background: #ffffff;
+  border: none;
+  color: #d32f2f;
+  font-size: 0.9em; /* Slightly smaller base size */
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: left;
+  padding: 8px 15px; /* Adjusted padding */
+  border-radius: 50px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0; /* Prevent button from shrinking too much if title is long */
+  margin-right: 10px; /* Space between back button and title */
+}
+
+.vcs-back-button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+.vcs-back-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.vcs-back-button svg {
+  margin-right: 6px; /* Adjusted margin */
+  fill: #d32f2f;
+}
+
+.vcs-header h1 {
+  font-size: 2.5em; /* Base title size */
+  color: #ffffff;
+  text-align: center;
+  font-weight: 600;
+  flex-grow: 1; /* Allow title to take available space */
+  overflow: hidden; /* Prevent long titles from breaking layout */
+  text-overflow: ellipsis; /* Add ellipsis for very long titles */
+  white-space: nowrap; /* Keep title on one line */
+  margin: 0; /* Remove default margin */
+}
+
+.vcs-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  padding: 0 10px; /* Add horizontal padding to content area */
+  box-sizing: border-box;
+}
+
+.vcs-mic-container {
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.vcs-mic-button {
+  width: 110px; /* Slightly smaller mic button for better mobile fit */
+  height: 110px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  position: relative;
+  outline: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.vcs-mic-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+}
+
+.vcs-mic-button:active:not(:disabled) {
+  transform: scale(0.95);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.vcs-mic-button.recording {
+  animation: micRecordingPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes micRecordingPulse {
+  0% { box-shadow: 0 6px 18px rgba(0,0,0,0.2), 0 0 0 0px rgba(211, 47, 47, 0.4); }
+  50% { box-shadow: 0 6px 18px rgba(0,0,0,0.2), 0 0 0 15px rgba(211, 47, 47, 0); }
+  100% { box-shadow: 0 6px 18px rgba(0,0,0,0.2), 0 0 0 0px rgba(211, 47, 47, 0); }
+}
+
+.vcs-mic-button.busy {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.vcs-mic-icon {
+  font-size: 48px; /* Slightly smaller icon */
+  color: #d32f2f;
+}
+
+.vcs-mic-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vcs-mic-button:not(.recording):not(.busy)::before {
+  animation: whiteWave 2.2s infinite ease-out;
+}
+
+@keyframes whiteWave {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.6);
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(1.7);
+    opacity: 0;
+    box-shadow: 0 0 0 35px rgba(255, 255, 255, 0);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.7);
+    opacity: 0;
+    box-shadow: 0 0 0 35px rgba(255, 255, 255, 0);
+  }
+}
+
+.vcs-display-area {
+  padding: 10px;
+  margin-bottom: 25px;
+  width: 100%;
+  min-height: 50px;
+  text-align: center;
+  word-break: break-word;
+}
+
+.vcs-display-area p {
+  margin: 0;
+  font-size: 1em;
+  color: #ffffff;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.vcs-display-area.error p {
+  color: #FFEBEE;
+  font-weight: bold;
+}
+.vcs-display-area.placeholder p {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.vcs-search-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 15px;
+  gap: 10px;
+}
+
+.vcs-search-input {
+  flex-grow: 1;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95em;
+  background-color: #ffffff;
+  color: #333333;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+.vcs-search-input::placeholder {
+    color: #999999;
+}
+.vcs-search-input:focus {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.vcs-search-input:disabled {
+  background-color: #f0f0f0;
+  color: #aaaaaa;
+  cursor: not-allowed;
+}
+
+.vcs-search-button {
+  padding: 12px 20px;
+  background-color: #ffffff;
+  color: #d32f2f;
+  font-weight: 500;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  box-sizing: border-box;
+}
+.vcs-search-button svg {
+  margin-right: 8px;
+  fill: #d32f2f;
+}
+
+.vcs-search-button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+.vcs-search-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.vcs-search-button:disabled {
+  background-color: #e0e0e0;
+  color: #aaaaaa;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.vcs-search-button:disabled svg {
+  fill: #aaaaaa;
+}
+
+.vcs-status-indicator {
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.7);
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+    padding-bottom: 5px;
+}
+
+@media (max-width: 600px) {
+  .vcs-page-container {
+    padding: 15px;
+  }
+  .vcs-header {
+    margin-bottom: 25px;
+  }
+  .vcs-back-button {
+    padding: 8px 12px;
+    font-size: 0.85em;
+  }
+  .vcs-back-button svg {
+    margin-right: 4px;
+  }
+  .vcs-header h1 {
+    font-size: 1.3em;
+  }
+  .vcs-mic-button {
+    width: 100px;
+    height: 100px;
+  }
+  .vcs-mic-icon {
+    font-size: 42px;
+  }
+  .vcs-display-area p {
+    font-size: 0.95em;
+  }
+  .vcs-search-input, .vcs-search-button {
+    font-size: 0.9em;
+    padding: 10px 15px;
+  }
+}
+
+@media (max-width: 380px) {
+  .vcs-page-container {
+    padding: 10px;
+  }
+  .vcs-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .vcs-back-button {
+    margin-bottom: 5px;
+    margin-right: 0;
+  }
+  .vcs-header h1 {
+    font-size: 1.2em;
+    width: 100%;
+    text-align: center;
+    margin-left: 0;
+  }
+  .vcs-mic-button {
+    width: 90px;
+    height: 90px;
+  }
+  .vcs-mic-icon {
+    font-size: 38px;
+  }
+  .vcs-display-area p {
+    font-size: 0.9em;
+  }
+  .vcs-search-form {
+    gap: 8px;
+  }
+}
+
+@media (min-width: 480px) {
+  .vcs-search-form {
+    flex-direction: row;
+  }
+  .vcs-search-input {
+    width: auto;
+  }
+  .vcs-search-button {
+    width: auto;
+    flex-shrink: 0;
+  }
+}
+
+/* === MODIFIED SECTION STARTS HERE === */
+/* Styles for product-location-display specifically within vcs-page-container */
+
+/* First block of .product-location-display styles, now scoped */
+.vcs-page-container .product-location-display {
+  /* Styles from App.css, e.g.: */ /* This comment was present in your original file */
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin: 10px auto;
+  max-width: 450px;
+  text-align: left;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.vcs-page-container .product-location-display p {
+  margin: 8px 0;
+  line-height: 1.4;
+  color: #ffffff; /* Explicitly set for elements within the box */
+}
+
+.vcs-page-container .product-location-display .item-name {
+  font-size: 1.4em; /* Make it stand out */
+  font-weight: 700; /* Bolder */
+  color: #fff; /* Bright white for emphasis */
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.3); /* Subtle separator */
+  padding-bottom: 8px;
+}
+
+.vcs-page-container .product-location-display .heading {
+  font-weight: 600; /* Slightly bolder heading */
+  color: rgba(255, 255, 255, 0.85); /* Slightly dimmer than main text for heading */
+  margin-right: 8px;
+}
+
+.vcs-page-container .product-location-display .aisle-number {
+  font-weight: 700; /* Bold aisle number */
+  font-size: 1.1em;
+  color: #ffffff;
+}
+
+.vcs-page-container .product-location-display .side-info,
+.vcs-page-container .product-location-display .part-info,
+.vcs-page-container .product-location-display .location-detail-info {
+  font-size: 1em;
+  color: #f0f0f0; /* Slightly softer white for details */
+}
+
+.vcs-page-container .product-location-display .location-detail-info {
+    margin-top: 10px; /* Add some space before the last detail line */
+}
+
+
+/* Second, conflicting block of .product-location-display styles, now also scoped */
+/* IMPORTANT: You have two definitions for .product-location-display.
+   The browser will apply one based on specificity and order.
+   The following rule will likely override the one above IF it's meant for the same context,
+   due to being later in the stylesheet, assuming .vcs-page-container has the same specificity.
+   You should review if you need both these definitions for .product-location-display
+   within the .vcs-page-container or if one is an older/alternative version.
+   For now, both are scoped to stop them from leaking to App.js. */
+
+.vcs-page-container .product-location-display {
+  background-color: #ffffff; /* White background for the box */
+  border: 1px solid #e0e0e0;   /* Light grey border, optional */
+  border-radius: 10px;         /* Rounded corners */
+  padding: 20px;               /* Internal spacing */
+  margin: 20px auto;           /* Spacing from other elements and centered if parent allows */
+  max-width: 480px;            /* Max width to keep it neat, adjust as needed */
+  text-align: left;            /* Align text inside the box to the left */
+  color: #333333;             /* Default dark text color for content inside the box */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
+}
+
+/* Styles for paragraphs within this second definition's box */
+.vcs-page-container .product-location-display p {
+  margin: 10px 0;             /* Spacing between lines */
+  line-height: 1.5;
+  color: #333333;             /* Ensure text is dark */
+}
+
+/* Style for the main item name/title within this second definition's box */
+.vcs-page-container .product-location-display .item-name {
+  font-size: 1.5em;            /* Larger font for the item name */
+  font-weight: 700;            /* Bold */
+  color: #d32f2f;             /* Main theme color (red) for the title, or use #000000 for black */
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeeeee; /* Light separator line */
+}
+
+/* Style for headings like "Aisle:", "Side:", "Section:", "Details:" for this second definition */
+.vcs-page-container .product-location-display .heading {
+  font-weight: 600;            /* Semi-bold */
+  color: #555555;             /* Slightly lighter dark grey for headings */
+  margin-right: 8px;
+}
+
+/* Specific style for the aisle number, if needed for this second definition */
+.vcs-page-container .product-location-display .aisle-number {
+  font-weight: 700;
+  color: #333333;
+}
+
+/* Styles for the info lines for this second definition */
+.vcs-page-container .product-location-display .side-info,
+.vcs-page-container .product-location-display .part-info,
+.vcs-page-container .product-location-display .location-detail-info {
+  font-size: 1em;
+  color: #444444;             /* Dark grey for detailed text */
+}
+
+.vcs-page-container .product-location-display .location-detail-info {
+    margin-top: 12px;
+}
+/* === MODIFIED SECTION ENDS HERE === */
+
+/* Adjust .vcs-display-area if its properties conflict,
+   e.g., if product-location-display should not be centered by text-align: center */
+.vcs-display-area {
+  /* ... existing styles ... */
+  padding: 10px; /* Keep or adjust as needed */
+  /* text-align: center; /* This is fine, box will be centered via margin: auto */
+}
+
+/* .vcs-display-area.error p, .vcs-display-area.placeholder p styles were already here and are fine */
