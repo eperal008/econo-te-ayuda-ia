@@ -13,6 +13,13 @@
 CREATE EXTENSION IF NOT EXISTS pg_trgm;      -- fuzzy / typo-tolerant matching
 CREATE EXTENSION IF NOT EXISTS unaccent;     -- accent-insensitive normalization
 
+-- unaccent() is STABLE, so it cannot be used directly in a GENERATED column or
+-- an index expression. Wrap it as IMMUTABLE (safe: the dictionary is fixed).
+CREATE OR REPLACE FUNCTION f_unaccent(text)
+RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT AS
+$$ SELECT public.unaccent('public.unaccent'::regdictionary, $1) $$;
+
 -- ---------------------------------------------------------------------------
 -- stores
 -- ---------------------------------------------------------------------------
@@ -101,7 +108,7 @@ CREATE TABLE IF NOT EXISTS products (
 ALTER TABLE products ADD COLUMN IF NOT EXISTS search_tsv tsvector
     GENERATED ALWAYS AS (
         to_tsvector('simple',
-            unaccent(coalesce(producto,'')      || ' ' ||
+            f_unaccent(coalesce(producto,'')      || ' ' ||
                      coalesce(producto_en,'')   || ' ' ||
                      coalesce(categoria,'')     || ' ' ||
                      coalesce(categoria_en,'')  || ' ' ||
