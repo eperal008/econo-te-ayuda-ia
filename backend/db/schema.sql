@@ -154,7 +154,12 @@ CREATE TABLE IF NOT EXISTS search_misses (
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- NOTE (Phase 2/3): semantic vector search adds `embedding vector(N)` here via
--- the pgvector extension. Deferred until we wire the semantic layer; the
--- deterministic layers above (exact / alias / category / trigram / full-text)
--- need no extra extensions.
+-- ---------------------------------------------------------------------------
+-- Semantic search (Phase 3) — pgvector embeddings for meaning-based recall.
+-- Populated by scripts/embed.js (NOT from the Excel); survives until re-ingest,
+-- after which embed.js is re-run for rows where embedding IS NULL.
+-- ---------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS vector;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS embedding vector(1536);
+CREATE INDEX IF NOT EXISTS idx_products_embedding
+    ON products USING hnsw (embedding vector_cosine_ops);

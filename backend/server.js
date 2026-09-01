@@ -9,6 +9,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const { searchLocation } = require("./lib/locationEngine");
+const { ask } = require("./lib/assistant");
 const db = require("./lib/db");
 
 const app = express();
@@ -78,5 +79,26 @@ app.get("/api/search", (req, res) =>
 app.post("/api/search", (req, res) =>
   handleSearch(req.body.query, req.body.lang, req.body.storeId, res)
 );
+
+// full AI assistant (intent router + rich features, grounded in the engine)
+app.post("/api/assistant", async (req, res) => {
+  const { query, lang, storeId, conversationHistory } = req.body || {};
+  if (!query || !String(query).trim()) return res.status(400).json({ error: "Missing 'query'." });
+  try {
+    const r = await ask(query, { lang, storeId, history: conversationHistory || [] });
+    res.json({
+      reply: r.reply,
+      intent: r.intent,
+      language: r.language,
+      products: r.products,
+      recipe: r.recipe || null,
+      mealIdeas: r.mealIdeas || null,
+      conversationHistory: r.history,
+    });
+  } catch (e) {
+    console.error("[/api/assistant]", e.message);
+    res.status(500).json({ error: "assistant failed" });
+  }
+});
 
 app.listen(PORT, () => console.log(`Econo backend listening on :${PORT}`));

@@ -16,7 +16,28 @@ const DEFAULT_STORE = process.env.DEFAULT_STORE_ID || "ECONO-SIERRA-BAYAMON";
 // ambiguous matches (e.g. "white rum" ~ "white rice") fall through to the AI
 // layer instead of returning a confident-but-wrong location.
 const FUZZY_THRESHOLD = 0.5;
-const CONFIDENCE = { exact: "high", alias: "high", category: "medium", fulltext: "medium", fuzzy: "low" };
+// Semantic (pgvector) recall. Cosine DISTANCE (0 = identical, 2 = opposite);
+// only accept reasonably-close meaning matches so unrelated items don't win.
+const SEMANTIC_MAX_DISTANCE = 0.5;
+const EMBED_MODEL = "text-embedding-3-small";
+const CONFIDENCE = { exact: "high", alias: "high", category: "medium", fulltext: "medium", semantic: "medium", fuzzy: "low" };
+
+// Lazy OpenAI client — only created if the semantic layer is actually reached.
+let _openai = null;
+function getOpenAI() {
+  if (_openai === null) {
+    if (!process.env.OPENAI_API_KEY) return null;
+    const { OpenAI } = require("openai");
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
+async function embedQuery(text) {
+  const openai = getOpenAI();
+  if (!openai) return null;
+  const r = await openai.embeddings.create({ model: EMBED_MODEL, input: text });
+  return "[" + r.data[0].embedding.join(",") + "]";
+}
 
 // SQL snippet: normalize a column the same way normalize() does in JS.
 const N = (col) =>
@@ -131,6 +152,17 @@ async function layerFuzzy(qn, storeId, limit) {
   return (await db.query(sql, [storeId, qn, limit, FUZZY_THRESHOLD])).rows;
 }
 
+async function layerSemantic(raw, storeId, limit) {
+  const vec = await embedQuery(raw);
+  if (!vec) return []; // no API key -> skip silently
+  const sql = `SELECT ${SELECT_COLS}, (p.embedding <=> $2::vector) AS distance
+    ${FROM_JOIN}
+    WHERE p.store_id = $1 AND p.embedding IS NOT NULL
+      AND (p.embedding <=> $2::vector) < $4
+    ORDER BY p.embedding <=> $2::vector LIMIT $3`;
+  return (await db.query(sql, [storeId, vec, limit, SEMANTIC_MAX_DISTANCE])).rows;
+}
+
 async function logMiss(raw, qn, storeId, lang) {
   try {
     await db.query(
@@ -147,7 +179,7 @@ async function logMiss(raw, qn, storeId, lang) {
  * @returns {Promise<{query,normalized,storeId,lang,matched,layer,aiFallback,results,best,answer}>}
  */
 async function searchLocation(rawQuery, opts = {}) {
-  const { storeId = DEFAULT_STORE, lang = "es", limit = 5, logMisses = true } = opts;
+  const { storeId = DEFAULT_STORE, lang = "es", limit = 5, logMisses = true, semantic = true } = opts;
   const raw = (rawQuery || "").trim();
   const qn = normalize(raw);
 
@@ -160,6 +192,7 @@ async function searchLocation(rawQuery, opts = {}) {
     ["category", () => layerCategory(qn, storeId, limit)],
     ["fulltext", () => layerFullText(raw, storeId, limit)],
     ["fuzzy", () => layerFuzzy(qn, storeId, limit)],
+    ...(semantic ? [["semantic", () => layerSemantic(raw, storeId, limit)]] : []), // paid; only if all else misses
   ];
 
   for (const [name, run] of layers) {

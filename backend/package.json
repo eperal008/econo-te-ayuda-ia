@@ -8,7 +8,8 @@
     "start:legacy": "node index.js",
     "test:acceptance": "node scripts/acceptance.js",
     "db:ingest": "node scripts/ingest.js",
-    "db:ingest:dry": "node scripts/ingest.js --dry-run"
+    "db:ingest:dry": "node scripts/ingest.js --dry-run",
+    "db:embed": "node scripts/embed.js"
   },
   "keywords": [],
   "author": "",
