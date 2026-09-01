@@ -1,702 +1,197 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-
-/* Base application styling */
-.app {
-    background-color: #d32f2f;
-    min-height: 100vh;
-    padding: 20px; /* Reduced padding */
-    color: #fff;
-    text-align: center;
-    font-family: 'Inter', Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box;
+:root {
+  --econo-red: #e2231a;
+  --econo-red-dark: #b3141a;
+  --econo-red-deep: #8f0f14;
+  --ink: #1a1414;
+  --muted: #6b6b6b;
+  --card: #ffffff;
+  --radius: 18px;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
 }
 
-/* Wrapper for the main content area of the home page */
-.content {
-    width: 100%;
-    max-width: 450px; /* Width maintained */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Styles for product list (if used on ProductsPage) */
-.products-list {
-    margin-top: 15px; /* Reduced margin */
-    text-align: left;
-    list-style: none;
-    padding: 0;
-    width: 100%;
-    max-width: 700px; /* Width maintained */
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.product-item {
-    background-color: rgba(255, 255, 255, 0.95);
-    color: #333;
-    padding: 12px; /* Reduced padding */
-    margin: 8px 0; /* Reduced margin */
-    border-radius: 8px; /* Slightly reduced border-radius */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px; /* Reduced gap */
-}
-
-.product-details {
-    flex-grow: 1;
-}
-
-.product-item h3 {
-    margin-top: 0;
-    margin-bottom: 6px; /* Reduced margin */
-    color: #d32f2f;
-    font-size: 1.1rem; /* Reduced font size */
-}
-
-.product-item p {
-    margin: 3px 0; /* Reduced margin */
-    font-size: 0.9rem; /* Reduced font size */
-    color: #555;
-}
-
-.product-image {
-    max-width: 70px; /* Reduced size */
-    max-height: 70px; /* Reduced size */
-    object-fit: contain;
-    border-radius: 5px;
-    flex-shrink: 0;
-}
-
-/* --- Styles for elements INSIDE the .content div (Home Page ONLY) --- */
-.content img.logo {
-    height: 85px; /* Reduced height */
-    width: auto;
-    margin-bottom: 25px; /* Reduced margin */
-    object-fit: contain;
-}
-
-.content .yoly-greeting {
-    font-size: 1.4rem; /* Reduced font size */
-    font-weight: normal;
-    color: #fff;
-    margin-bottom: 8px; /* Reduced margin */
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #d32f2f;
-    padding: 6px 18px; /* Reduced padding */
-    border-radius: 18px; /* Slightly reduced border-radius */
-    display: inline-block;
-}
-
-.content .mic-button-container {
-    margin-bottom: 10px; /* Reduced margin */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.content .mic-prompt-text {
-    font-size: 1.0rem; /* Reduced font size */
-    font-weight: normal;
-    color: #fff;
-    margin-bottom: 10px; /* Reduced margin */
-    padding: 7px 12px; /* Reduced padding */
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Slightly reduced border-radius */
-    max-width: 80%;
-}
-
-.content .mic-prompt-text strong {
-    display: block;
-    font-size: 1.15rem; /* Reduced font size */
-    font-weight: bold;
-    margin-bottom: 0px; /* Reduced margin */
-}
-
-.content .chat-trigger {
-    background-color: #fff;
-    color: #888;
-    border-radius: 12px; /* Slightly reduced border-radius */
-    padding: 10px 15px; /* Reduced padding */
-    margin-top: -10px; /* Adjusted margin */
-    margin-bottom: 20px; /* Reduced margin */
-    width: 90%; /* Width maintained */
-    min-height: 36px; /* Reduced min-height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.0rem; /* Reduced font size */
-    font-weight: 500;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.content .chat-trigger:hover {
-    background-color: #f8f8f8;
-}
-
-/* General display area styles */
-.content .display-area {
-    background-color: #fff;
-    color: #333;
-    border-radius: 12px; /* Slightly reduced border-radius */
-    padding: 10px 15px; /* Reduced padding */
-    margin-bottom: 20px; /* Reduced margin */
-    width: 90%; /* Width maintained */
-    min-height: 36px; /* Reduced min-height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem; /* Reduced font size */
-    font-weight: 500;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: pre-wrap;
-    text-align: center;
-}
-
-.content .display-area p {
-    margin: 0;
-    line-height: 1.5; /* Slightly reduced line-height */
-}
-
-/* Specific states for the general display area content */
-.content .display-area.placeholder p {
-    color: #888;
-    font-style: italic;
-}
-
-.content .display-area.error p {
-    color: #d32f2f;
-    font-weight: bold;
-}
-
-.content .display-area.listening p,
-.content .display-area.processing p {
-    color: #555;
-}
-
-/* Styles for the new structured product location display */
-.product-location-display {
-    text-align: left;
-    font-size: 1.0em; /* Relative to its container (.display-area's 1.1rem) */
-    line-height: 1.4; /* Slightly reduced line-height */
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.product-location-display p {
-    margin-bottom: 6px; /* Reduced margin */
-    display: flex;
-    align-items: baseline;
-    text-align: left;
-}
-
-.product-location-display p:last-child {
-    margin-bottom: 0;
-}
-
-.product-location-display .item-name {
-    font-weight: 600;
-    font-size: 1.1em; /* Reduced font size (relative) */
-    color: #2c3e50;
-    margin-bottom: 10px; /* Reduced margin */
-    display: block;
-    text-align: center;
-    width: 100%;
-}
-
-.product-location-display .heading {
-    font-weight: 500;
-    color: #555e68;
-    margin-right: 6px; /* Reduced margin */
-    font-size: 0.85em; /* Reduced font size (relative) */
-    min-width: 65px; /* Adjusted min-width */
-    display: inline-block;
-}
-
-.product-location-display .aisle-info .aisle-number {
-    font-weight: 700;
-    font-size: 1.8em; /* Reduced font size (relative) */
-    color: #d32f2f;
-    margin-left: 4px; /* Reduced margin */
-    line-height: 1;
-}
-
-.product-location-display .side-info span:not(.heading),
-.product-location-display .part-info span:not(.heading),
-.product-location-display .brand-info span:not(.heading) {
-    font-weight: 600;
-    color: #34495e;
-    text-align: left;
-    flex-grow: 1;
-}
-
-/* Specific class for the .display-area container when showing structured product info */
-.content .display-area.structured-product-info {
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding: 12px; /* Reduced padding */
-    text-align: left;
-}
-
-.content .quick-options {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px; /* Reduced gap */
-    width: 90%; /* Width maintained */
-    margin-bottom: 15px; /* Reduced margin */
-}
-
-.text-links {
-    margin-top: 5px; /* Reduced margin */
-    margin-bottom: 15px; /* Reduced margin */
-    display: flex;
-    justify-content: center;
-    gap: 30px; /* Reduced gap */
-    width: 90%; /* Width maintained */
-}
-
-.text-link {
-    color: #fff;
-    font-size: 1.15rem; /* Reduced font size */
-    font-weight: bold;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.text-link:hover {
-    color: #eee;
-}
-
-.content .language-toggle {
-    margin-top: 0px; /* Reduced margin */
-    display: flex;
-    gap: 12px; /* Reduced gap */
-    justify-content: center;
-}
-
-.content .language-toggle button {
-    padding: 8px 18px; /* Reduced padding */
-    background-color: #fff;
-    color: #d32f2f;
-    border: none;
-    border-radius: 12px; /* Slightly reduced border-radius */
-    cursor: pointer;
-    font-size: 1.0rem; /* Reduced font size */
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-}
-
-.content .language-toggle button:hover {
-    background-color: #eee;
-}
-
-.content .language-toggle button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-/* --- Styles potentially shared (keep global) --- */
-.mic-button {
-    width: 115px;  /* Slightly Reduced width */
-    height: 115px; /* Slightly Reduced height */
-    border-radius: 50%;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    position: relative;
-}
-
-.mic-button.recording {
-    background-color: #ffebee;
-}
-
-.mic-button.busy {
-    background-color: #f0f0f0;
-    cursor: not-allowed;
-}
-
-.mic-button:not(.recording):not(.busy)::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background-color: rgb(255, 255, 255);
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-    animation: micPulseAnimation 2s infinite ease-out;
-    z-index: 0;
-}
-
-@keyframes micPulseAnimation {
-    0% {
-        transform: translate(-50%, -50%) scale(0.9);
-        opacity: 0.6;
-    }
-    70% {
-        transform: translate(-50%, -50%) scale(2.2);
-        opacity: 0;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(2.2);
-        opacity: 0;
-    }
-}
-
-.mic-icon {
-    color: #d32f2f;
-    font-size: 40px; /* Reduced font size */
-    position: relative;
-    z-index: 1;
-}
-
-.grid-button {
-    background-color: #fff;
-    border: none;
-    border-radius: 15px; /* Slightly reduced border-radius */
-    padding: 12px 8px; /* Reduced padding */
-    display: flex;
-    height: 100px; /* Reduced height */
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    cursor: pointer;
-    text-decoration: none;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden;
-}
-
-.grid-button:hover {
-    transform: translateY(-2px); /* Adjusted hover effect */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Adjusted hover effect */
-}
-
-.grid-button-icon {
-    color: #d32f2f;
-    font-size: 2.2rem; /* Reduced font size */
-    margin-bottom: 6px; /* Reduced margin */
-}
-
-.grid-button-text {
-    color: #d32f2f;
-    font-size: 1.0rem; /* Reduced font size */
-    font-weight: bold;
-    line-height: 1.2;
-    display: block;
-}
-
-.grid-button.visual-assistant-button .grid-button-icon {
-    color: black;
-    font-size: 2.7rem; /* Reduced font size */
-}
-
-.grid-button.visual-assistant-button .grid-button-text {
-    color: black;
-}
-
-/* --- Responsive Adjustments --- */
-@media (max-width: 360px) {
-    .app {
-        padding: 10px; /* Kept padding as is from original for very small screens */
-    }
-
-    .content img.logo {
-        height: 70px; /* Further reduced height */
-        margin-bottom: 15px; /* Further reduced margin */
-    }
-
-    .content .yoly-greeting {
-        font-size: 1.1rem; /* Further reduced font size */
-        padding: 5px 12px; /* Further reduced padding */
-        margin-bottom: 10px; /* Further reduced margin */
-    }
-
-    .mic-button {
-        width: 90px;   /* Further reduced for very small screens */
-        height: 90px;  /* Further reduced for very small screens */
-    }
-
-    .mic-icon {
-        font-size: 30px; /* Further reduced icon size */
-    }
-
-    .content .mic-prompt-text {
-        font-size: 0.9rem; /* Further reduced font size */
-        margin-bottom: 20px; /* Further reduced margin */
-        padding: 6px 10px;
-    }
-
-    .content .mic-prompt-text strong {
-        font-size: 1.0rem; /* Further reduced font size */
-    }
-
-    .content .display-area {
-        font-size: 0.95rem; /* Further reduced font size */
-        padding: 8px 12px; /* Further reduced padding */
-        width: 95%;
-        margin-bottom: 15px; /* Further reduced margin */
-        min-height: 30px;
-    }
-    .content .display-area.structured-product-info {
-        padding: 10px;
-    }
-
-
-    .content .chat-trigger {
-        font-size: 0.95rem; /* Further reduced font size */
-        padding: 8px 12px; /* Further reduced padding */
-        width: 95%;
-        margin-bottom: 15px; /* Further reduced margin */
-        min-height: 30px;
-    }
-
-    .content .quick-options {
-        gap: 8px; /* Further reduced gap */
-        width: 95%;
-        margin-bottom: 12px; /* Further reduced margin */
-    }
-
-    .grid-button {
-        padding: 8px 5px; /* Further reduced padding */
-        border-radius: 12px; /* Further reduced border-radius */
-        height: 80px; /* Further reduced height */
-    }
-
-    .grid-button-icon {
-        font-size: 1.6rem; /* Further reduced font size */
-        margin-bottom: 4px; /* Further reduced margin */
-    }
-
-    .grid-button-text {
-        font-size: 0.9rem; /* Further reduced font size */
-    }
-
-    .grid-button.visual-assistant-button .grid-button-icon {
-        font-size: 2.2rem; /* Further reduced font size */
-    }
-
-    .text-links {
-        margin-top: 8px; /* Further reduced margin */
-        margin-bottom: 8px; /* Further reduced margin */
-        gap: 15px; /* Further reduced gap */
-    }
-
-    .text-link {
-        font-size: 1.0rem; /* Further reduced font size */
-    }
-
-    .content .language-toggle {
-        margin-top: 10px; /* Further reduced margin */
-        gap: 8px; /* Further reduced gap */
-    }
-
-    .content .language-toggle button {
-        padding: 6px 12px; /* Further reduced padding */
-        font-size: 0.9rem; /* Further reduced font size */
-    }
-
-    .product-item {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 8px; /* Further reduced padding */
-        gap: 8px;
-    }
-    .product-item h3 {
-        font-size: 1.0rem;
-    }
-    .product-item p {
-        font-size: 0.85rem;
-    }
-
-    .product-image {
-        max-width: 50px; /* Further reduced size */
-        max-height: 50px; /* Further reduced size */
-        margin-top: 8px; /* Adjusted margin */
-        align-self: center;
-    }
-
-    .products-list {
-        max-width: 95%;
-        margin-top: 10px;
-    }
-
-    /* Responsive adjustments for structured display on very small screens */
-    .product-location-display {
-        font-size: 0.95em; /* Relative to display-area's 0.95rem */
-    }
-
-    .product-location-display .item-name {
-        font-size: 1.0em; /* Further reduced (relative) */
-        margin-bottom: 8px; /* Further reduced */
-    }
-
-    .product-location-display .aisle-info .aisle-number {
-        font-size: 1.6em; /* Further reduced (relative) */
-    }
-
-    .product-location-display .heading {
-        min-width: 55px; /* Adjusted */
-        font-size: 0.8em; /* Further reduced (relative) */
-        margin-right: 4px;
-    }
-}
-
-/* --- Styles for new text search form in App.js --- */
-.app-search-form {
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+.econo-app {
+  min-height: 100vh;
+  background: linear-gradient(170deg, var(--econo-red) 0%, var(--econo-red-dark) 100%);
+  color: #fff;
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
   display: flex;
-  width: 90%; /* Match .display-area width */
-  max-width: 450px; /* Match .content max-width or adjust as needed */
-  margin: 10px auto 35px auto; /* Added more bottom margin */
-  gap: 8px;
-}
-
-.app-search-input {
-  flex-grow: 1;
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 1px solid #ddd; /* Lighter border */
-  font-size: 1.0rem;
-  color: #333;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.app-search-input:focus {
-  outline: none;
-  border-color: #d32f2f; /* Highlight color on focus */
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 0 2px rgba(211, 47, 47, 0.3);
-}
-
-.app-search-input::placeholder {
-    color: #888; /* Placeholder text color */
-}
-
-.app-search-input:disabled {
-    background-color: #f0f0f0; /* Disabled background */
-    color: #999; /* Disabled text color */
-    cursor: not-allowed;
-}
-
-.app-search-button {
-  padding: 10px 15px;
-  background-color: #fff;
-  color: #d32f2f;
-  border: 1px solid #d32f2f; /* Border to match theme */
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.0rem;
-  font-weight: bold;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  display: flex; /* For icon alignment */
-  align-items: center; /* For icon alignment */
-  justify-content: center; /* For icon alignment */
-}
-
-.app-search-button svg { /* Style for FaSearch icon */
-    font-size: 1.2rem; /* Adjust icon size if needed */
-}
-
-
-.app-search-button:hover:not(:disabled) {
-  background-color: #d32f2f; /* Theme color on hover */
-  color: #fff; /* White text/icon on hover */
-}
-
-.app-search-button:disabled {
-    background-color: #ccc;
-    border-color: #bbb;
-    color: #777;
-    cursor: not-allowed;
-}
-
-/* Responsive adjustments for the search form if necessary */
-@media (max-width: 360px) {
-  .app-search-form {
-    width: 95%; /* Match other elements on small screens */
-    margin-bottom: 15px;
-  }
-  .app-search-input {
-    padding: 8px 12px;
-    font-size: 0.95rem;
-  }
-  .app-search-button {
-    padding: 8px 12px;
-  }
-  .app-search-button svg {
-    font-size: 1.1rem;
-  }
-}
-
-/* --- Styles for Ad Banner --- */
-
-.ad-banner-container {
-  margin-top: 15px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding-top: 15px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.ad-image {
+/* ---------- header ---------- */
+.econo-header {
   width: 100%;
-  max-width: 320px; /* Control the max size of the ad */
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  background-color: #fff; /* White background for transparent PNGs */
-}
-
-.ad-text {
-  font-weight: bold;
-  font-size: 1.2rem;
-  text-align: center;
-  color: #333; /* Dark text for contrast */
-  background-color: #fff;
-  padding: 15px 20px;
-  border-radius: 10px;
-  width: 100%;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* --- Add these styles to App.css --- */
-
-/* This allows us to position the canvas absolutely inside the button container */
-.mic-button-container {
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 16px 6px;
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
-
-/* This is the new canvas for our voice waves */
-.voice-visualizer {
+.econo-back, .econo-lang {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 16px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.econo-back { left: 14px; width: 40px; height: 40px; font-size: 16px; display: grid; place-items: center; }
+.econo-lang { right: 14px; padding: 9px 16px; font-size: 14px; }
+.econo-lang:hover, .econo-back:hover { background: rgba(255, 255, 255, 0.28); }
+
+/* ---------- logo ---------- */
+.econo-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.econo-wordmark {
+  background: #fff;
+  border-radius: 10px;
+  padding: 6px 18px;
+  box-shadow: inset 0 0 0 3px var(--econo-red), 0 2px 6px rgba(0,0,0,.15);
+}
+.econo-word {
+  color: var(--econo-red);
+  font-weight: 900;
+  font-size: 34px;
+  letter-spacing: 2px;
+  font-style: italic;
+}
+.econo-tagline { display: flex; align-items: center; gap: 6px; }
+.econo-te-ayuda { font-weight: 800; font-size: 13px; letter-spacing: 3px; color: rgba(255,255,255,.92); }
+.econo-ia-bubble {
+  background: #fff; color: var(--econo-red); font-weight: 900; font-size: 13px;
+  border-radius: 12px 12px 12px 3px; padding: 2px 9px; position: relative; display: inline-flex; align-items: center;
+}
+.econo-spark { font-size: 9px; margin-left: 2px; }
+
+/* ---------- main ---------- */
+.econo-main {
   width: 100%;
-  height: 100%;
-  pointer-events: none; /* This makes sure you can still click the button underneath */
-  z-index: 1; /* Place it behind the icon */
+  max-width: 560px;
+  padding: 8px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
 }
 
-/* We need to make sure the icon is on top of the waves */
-.mic-icon {
-  position: relative;
-  z-index: 2;
+/* ---------- mic ---------- */
+.econo-mic {
+  margin-top: 14px;
+  width: 118px; height: 118px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  color: var(--econo-red);
+  font-size: 46px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  box-shadow: 0 0 0 10px rgba(255,255,255,.12), var(--shadow);
+  transition: transform .12s ease;
+}
+.econo-mic:active { transform: scale(.96); }
+.econo-mic.listening { animation: pulse 1.2s infinite; color: var(--econo-red-dark); }
+.econo-mic.busy { opacity: .7; }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 6px rgba(255,255,255,.35), var(--shadow); }
+  70% { box-shadow: 0 0 0 22px rgba(255,255,255,0), var(--shadow); }
+  100% { box-shadow: 0 0 0 6px rgba(255,255,255,0), var(--shadow); }
+}
+@media (prefers-reduced-motion: reduce) { .econo-mic.listening { animation: none; } }
+
+.econo-prompt {
+  background: rgba(0,0,0,.22);
+  border-radius: 14px;
+  padding: 10px 18px;
+  text-align: center;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.econo-prompt strong { font-size: 16px; }
+.econo-prompt span { font-size: 13px; opacity: .9; }
+
+/* ---------- search ---------- */
+.econo-search {
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 6px 6px 6px 16px;
+  box-shadow: var(--shadow);
+}
+.econo-search input {
+  flex: 1; border: none; outline: none; font-size: 16px; color: var(--ink); background: transparent; padding: 10px 0;
+}
+.econo-cam, .econo-go {
+  border: none; cursor: pointer; width: 44px; height: 44px; border-radius: 10px;
+  display: grid; place-items: center; font-size: 18px;
+}
+.econo-cam { background: #f1f1f1; color: var(--econo-red); }
+.econo-go { background: var(--econo-red); color: #fff; }
+.econo-go:disabled { background: #e6b3b3; cursor: default; }
+
+/* ---------- status ---------- */
+.econo-status { font-size: 16px; font-weight: 600; opacity: .95; }
+.econo-status.error { background: rgba(0,0,0,.25); padding: 8px 14px; border-radius: 10px; }
+
+/* ---------- result ---------- */
+.econo-result { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.econo-reply {
+  background: rgba(255,255,255,.14);
+  border-radius: 14px; padding: 14px 16px; margin: 0; font-size: 16px; line-height: 1.45;
+}
+.econo-suggestions {
+  background: #fff; color: var(--ink); border-radius: var(--radius); padding: 8px; box-shadow: var(--shadow);
+}
+.econo-suggestions-head {
+  font-weight: 800; color: var(--econo-red); padding: 10px 12px 6px; font-size: 15px;
+}
+.econo-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px; border-radius: 12px;
+}
+.econo-item:not(:last-child) { border-bottom: 1px solid #f0f0f0; }
+.econo-item-name { flex: 1; font-weight: 600; font-size: 15px; }
+.econo-aisle {
+  background: var(--econo-red); color: #fff; font-weight: 800; font-size: 13px;
+  padding: 6px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.econo-aisle.muted { background: #d8d8d8; color: #555; }
+.econo-promo {
+  background: #ffe8b3; color: #8a5a00; font-weight: 800; font-size: 13px; padding: 5px 10px; border-radius: 8px;
+}
+
+/* ---------- action grid ---------- */
+.econo-grid {
+  width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px;
+}
+.econo-tile {
+  background: #fff; color: var(--econo-red); text-decoration: none;
+  border: none; cursor: pointer;
+  border-radius: var(--radius); padding: 22px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 15px; box-shadow: var(--shadow);
+  transition: transform .1s ease;
+}
+.econo-tile svg { font-size: 26px; }
+.econo-tile:active { transform: scale(.97); }
+
+/* ---------- qr ---------- */
+.econo-qr {
+  align-self: flex-end;
+  margin-top: 2px;
+  width: 52px; height: 52px; border-radius: 14px;
+  background: rgba(255,255,255,.9); color: var(--econo-red); border: none; cursor: pointer;
+  font-size: 24px; display: grid; place-items: center; box-shadow: var(--shadow);
+}
+
+@media (max-width: 400px) {
+  .econo-word { font-size: 28px; }
+  .econo-mic { width: 100px; height: 100px; font-size: 40px; }
 }
