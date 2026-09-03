@@ -6,6 +6,7 @@
 // against pulling the assistant off-domain.
 // ============================================================================
 const { OpenAI } = require("openai");
+const { withRetry } = require("./retry");
 
 const MODEL = "gpt-4o-mini";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -75,12 +76,12 @@ async function classify(query, history = []) {
         `CONVERSATION HISTORY:\n${JSON.stringify(history.slice(-6))}\n\nCURRENT MESSAGE:\n"${query}"`,
     },
   ];
-  const res = await openai.chat.completions.create({
+  const res = await withRetry(() => openai.chat.completions.create({
     model: MODEL,
     messages,
     temperature: 0,
     response_format: { type: "json_object" },
-  });
+  }));
   let parsed;
   try {
     parsed = JSON.parse(res.choices[0].message.content);

@@ -35,7 +35,8 @@ function getOpenAI() {
 async function embedQuery(text) {
   const openai = getOpenAI();
   if (!openai) return null;
-  const r = await openai.embeddings.create({ model: EMBED_MODEL, input: text });
+  const { withRetry } = require("./retry");
+  const r = await withRetry(() => openai.embeddings.create({ model: EMBED_MODEL, input: text }));
   return "[" + r.data[0].embedding.join(",") + "]";
 }
 

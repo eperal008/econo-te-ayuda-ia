@@ -11,6 +11,7 @@
 const { classify } = require("./intentRouter");
 const { searchLocation, embedQuery } = require("./locationEngine");
 const db = require("./db");
+const { withRetry } = require("./retry");
 const { OpenAI } = require("openai");
 
 const CHAT_MODEL = "gpt-4o-mini";
@@ -19,12 +20,12 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const SAFETY = `You are Yoly, the in-store assistant for Supermercados Econo. Stay strictly within supermarket shopping (products, food, recipes, cleaning, household, prices/promotions, store info). Never invent products, brands, prices, promotions, inventory, or aisle/location information — use ONLY the data provided to you. If a product or its location is not in the provided data, say it was not found and suggest asking a store associate or offer a listed alternative. Never give dangerous advice; for cleaners/pesticides/medicines tell the customer to follow the label. Keep replies short, friendly and practical. Plain text only, no markdown. Reply in the language: `;
 
 async function llm(messages, json = false, temperature = 0.4) {
-  const res = await openai.chat.completions.create({
+  const res = await withRetry(() => openai.chat.completions.create({
     model: CHAT_MODEL,
     messages,
     temperature,
     ...(json ? { response_format: { type: "json_object" } } : {}),
-  });
+  }));
   return res.choices[0].message.content;
 }
 
