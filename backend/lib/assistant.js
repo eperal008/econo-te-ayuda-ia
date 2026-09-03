@@ -50,9 +50,15 @@ async function resolveTerms(terms, { storeId, lang, semantic = true }) {
       area: r.best?.departamento || null,      // for badge on no-aisle zones
       area_en: r.best?.departamento_en || null,
       zone_id: r.best?.zone_id || null,
+      tramo: r.best?.tramo || null,
+      tramo_en: r.best?.tramo_en || null,
       location: r.best?.response || null,
       price: r.best?.price ?? null,
       promo: r.best?.promo_text || r.best?.promo_price || null,
+      promo_text: r.best?.promo_text || null,
+      promo_price: r.best?.promo_price || null,
+      promo_image_url: r.best?.promo_image_url || null,
+      image_url: r.best?.image_url || null,
     });
   }
   return out;
@@ -183,8 +189,10 @@ async function ask(query, opts = {}) {
     return { reply: "", intent: "GREETING", language: lang || "es", products: [], history };
   }
 
-  const router = await classify(query, history);
-  const language = lang || router.language || "es";
+  // Hybrid language: auto-detect the message language (router), falling back to
+  // the selected UI language when the message is too short/ambiguous.
+  const router = await classify(query, history, lang || "es");
+  const language = router.language || lang || "es";
   const base = { intent: router.intent, language, router, products: [], recipe: null };
 
   let reply = "";

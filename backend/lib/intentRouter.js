@@ -39,7 +39,8 @@ Use the CONVERSATION HISTORY to resolve follow-ups (e.g. "and for kids?", "which
 
 INTENTS: ${INTENTS.join(", ")}.
 
-LANGUAGE: detect the language of the CURRENT message and return its ISO 639-1 code (es, en, fr, de, pt, ...). Follow the user's most recent language.
+LANGUAGE: detect the actual language of the CURRENT message and return its ISO 639-1 code (es, en, fr, de). Detect independently — do NOT just echo the interface language. If the message contains real words of a language (e.g. French "où est le lait", German "wo ist der Reis", English "where is the milk", Spanish "dónde está la leche"), return THAT language even if it differs from the interface language. ONLY fall back to the provided INTERFACE LANGUAGE when the message is a bare product/brand name with no grammatical words that reveals no language (e.g. "Dewar's", "arroz", "mayonesa", "milk" alone).
+Examples (interface=es): "où est le lait" -> "fr"; "wo ist der Reis" -> "de"; "where is the milk" -> "en"; "arroz" -> "es"; "detergente" -> "es".
 
 SEARCH TERMS: for any intent that involves finding items in the store, list the concrete product/category terms to look up. The store database is indexed in SPANISH and ENGLISH only, so you MUST ALWAYS include both the English AND the Spanish term — even when the customer wrote in another language. Translate foreign terms.
 - English "olive oil" -> ["olive oil","aceite de oliva"]
@@ -67,13 +68,13 @@ Return ONLY this JSON:
  * @param {Array} history  [{role, content}]
  * @returns {Promise<object>} parsed router result
  */
-async function classify(query, history = []) {
+async function classify(query, history = [], uiLang = "es") {
   const messages = [
     { role: "system", content: SYSTEM },
     {
       role: "user",
       content:
-        `CONVERSATION HISTORY:\n${JSON.stringify(history.slice(-6))}\n\nCURRENT MESSAGE:\n"${query}"`,
+        `INTERFACE LANGUAGE: ${uiLang}\nCONVERSATION HISTORY:\n${JSON.stringify(history.slice(-6))}\n\nCURRENT MESSAGE:\n"${query}"`,
     },
   ];
   const res = await withRetry(() => openai.chat.completions.create({
@@ -90,7 +91,7 @@ async function classify(query, history = []) {
   }
   // defensive defaults
   return {
-    language: parsed.language || "es",
+    language: parsed.language || uiLang,
     intent: INTENTS.includes(parsed.intent) ? parsed.intent : "PRODUCT_SEARCH",
     search_terms: Array.isArray(parsed.search_terms) ? parsed.search_terms.filter(Boolean) : [],
     entities: parsed.entities || {},

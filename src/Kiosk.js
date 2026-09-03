@@ -70,12 +70,12 @@ export default function Kiosk() {
     audioRef.current = null;
   }, []);
 
-  // Speak the reply with Google TTS (natural multilingual voice).
-  const speak = useCallback(async (text) => {
+  // Speak the reply with Google TTS in the reply's actual language.
+  const speak = useCallback(async (text, spLang) => {
     stopAudio();
     if (!text) return;
     try {
-      const url = await textToSpeech(text, lang);
+      const url = await textToSpeech(text, spLang || lang);
       const a = new Audio(url);
       audioRef.current = a;
       a.play().catch(() => {});
@@ -87,9 +87,9 @@ export default function Kiosk() {
     if (!q) return;
     setLoading(true); setError(""); setResult(null);
     try {
-      const data = await askAssistant(q, { lang }); // selected language is authoritative
+      const data = await askAssistant(q, { lang }); // lang = selected button (fallback); backend auto-detects
       setResult(data);
-      speak(data.reply);
+      speak(data.reply, data.language);
     } catch (e) {
       setError(t.tryAgain);
     } finally {
@@ -151,7 +151,7 @@ export default function Kiosk() {
       const seen = lang === "es" ? data.identified.name_es : data.identified.name_en;
       setQuery(seen || "");
       setResult(data);
-      speak(data.reply);
+      speak(data.reply, data.language);
     } catch { setError(t.tryAgain); }
     finally { setLoading(false); }
   }, [lang, t, speak, stopAudio]);
@@ -159,19 +159,33 @@ export default function Kiosk() {
   const reset = () => { setResult(null); setQuery(""); setError(""); stopAudio(); };
   const pickLang = (code) => { setLang(code); reset(); };
 
+  const hasResult = !!result || loading || listening || error;
+  const products = result?.products || [];
+  const recipe = result?.recipe || null;
+  // Display language = the reply's actual (auto-detected) language, falling back to the button.
+  const rlang = result?.language || lang;
+
   // Badge label: numbered aisle -> "Aisle N"; liquor code -> "area + code";
   // no-aisle special zone -> the department/area name (never "Pasillo SIN PASILLO").
   const badge = (item) => {
     const p = String(item.aisle || "").trim();
-    const area = (lang === "es" ? item.area : item.area_en) || item.area_en || item.area;
+    const area = (rlang === "es" ? item.area : item.area_en) || item.area_en || item.area;
     if (/^\d+$/.test(p)) return `${t.aisle} ${p}`;
     if (/^[a-z]\d+$/i.test(p)) return area ? `${area} ${p}` : `${t.aisle} ${p}`;
     return area || t.notFound; // SIN PASILLO
   };
-
-  const hasResult = !!result || loading || listening || error;
-  const products = result?.products || [];
-  const recipe = result?.recipe || null;
+  // Localized product name (uses the translated name for FR/DE).
+  const nm = (it) => rlang === "es" ? (it.name || it.name_es || it.name_en)
+    : rlang === "en" ? (it.name_en || it.name || it.name_es)
+    : (it.name_display || it.name_en || it.name || it.name_es);
+  // Shelf position line ("beginning/middle/end of the aisle") — only for the standard tramos.
+  const SHELF = {
+    Principio: { es: "Al principio del pasillo", en: "Beginning of the aisle", fr: "Au début de l'allée", de: "Am Anfang des Gangs" },
+    Medio: { es: "En el medio del pasillo", en: "Middle of the aisle", fr: "Au milieu de l'allée", de: "In der Mitte des Gangs" },
+    Final: { es: "Al final del pasillo", en: "End of the aisle", fr: "À la fin de l'allée", de: "Am Ende des Gangs" },
+  };
+  const shelfText = (it) => { const m = SHELF[it.tramo]; return m ? (m[rlang] || m.en) : null; };
+  const money = (v) => "$" + Number(v).toFixed(2);
 
   return (
     <div className="econo-app">
@@ -233,7 +247,7 @@ export default function Kiosk() {
                 </div>
                 {recipe.ingredients.map((ing, i) => (
                   <div className="econo-item" key={i}>
-                    <span className="econo-item-name">{lang === "es" ? (ing.name_es || ing.name_en) : lang === "en" ? (ing.name_en || ing.name_es) : (ing.name_display || ing.name_en || ing.name_es)}</span>
+                    <span className="econo-item-name">{nm(ing)}</span>
                     {ing.found ? (
                       <span className="econo-aisle"><FaMapMarkerAlt /> {badge(ing)}</span>
                     ) : (
@@ -244,14 +258,41 @@ export default function Kiosk() {
               </div>
             )}
 
-            {!recipe && products.length > 0 && (
+            {/* Single product -> rich "Result Found" card (matches the mockup) */}
+            {!recipe && products.length === 1 && (
+              <div className="econo-found">
+                <div className="econo-found-head">
+                  <span className="econo-found-name"><FaMapMarkerAlt className="pin" /> {nm(products[0])}</span>
+                  <span className="econo-aisle big">{badge(products[0])}</span>
+                </div>
+                {shelfText(products[0]) && (
+                  <div className="econo-shelf"><FaMapMarkerAlt /> {shelfText(products[0])}</div>
+                )}
+                {(products[0].image_url || products[0].promo_price || products[0].promo_text || products[0].price != null) && (
+                  <div className="econo-promo-card">
+                    {products[0].image_url && <img className="econo-prod-img" src={products[0].image_url} alt="" />}
+                    {(products[0].promo_price || products[0].promo_text || products[0].price != null) && (
+                      <div className="econo-promo-box">
+                        <div className="econo-promo-name">{nm(products[0])}</div>
+                        {products[0].price != null && <div className="econo-promo-reg">Reg. {money(products[0].price)}</div>}
+                        <div className="econo-promo-price">{products[0].promo_price || products[0].promo_text || money(products[0].price)}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Multiple products -> list */}
+            {!recipe && products.length > 1 && (
               <div className="econo-suggestions">
                 {products.map((p, i) => (
                   <div className="econo-item" key={i}>
-                    <span className="econo-item-name">{lang === "es" ? (p.name || p.name_en) : lang === "en" ? (p.name_en || p.name) : (p.name_display || p.name_en || p.name)}</span>
+                    {p.image_url && <img className="econo-item-thumb" src={p.image_url} alt="" />}
+                    <span className="econo-item-name">{nm(p)}</span>
                     <span className="econo-aisle"><FaMapMarkerAlt /> {badge(p)}</span>
-                    {(p.promo || p.promo_price || p.promo_text) && (
-                      <span className="econo-promo">{p.promo || p.promo_price || p.promo_text}</span>
+                    {(p.promo_price || p.promo_text) && (
+                      <span className="econo-promo">{p.promo_price || p.promo_text}</span>
                     )}
                   </div>
                 ))}
