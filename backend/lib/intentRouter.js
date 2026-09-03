@@ -39,8 +39,11 @@ Use the CONVERSATION HISTORY to resolve follow-ups (e.g. "and for kids?", "which
 
 INTENTS: ${INTENTS.join(", ")}.
 
-LANGUAGE: detect the actual language of the CURRENT message and return its ISO 639-1 code (es, en, fr, de). Detect independently — do NOT just echo the interface language. If the message contains real words of a language (e.g. French "où est le lait", German "wo ist der Reis", English "where is the milk", Spanish "dónde está la leche"), return THAT language even if it differs from the interface language. ONLY fall back to the provided INTERFACE LANGUAGE when the message is a bare product/brand name with no grammatical words that reveals no language (e.g. "Dewar's", "arroz", "mayonesa", "milk" alone).
-Examples (interface=es): "où est le lait" -> "fr"; "wo ist der Reis" -> "de"; "where is the milk" -> "en"; "arroz" -> "es"; "detergente" -> "es".
+LANGUAGE: return TWO fields.
+- "is_language_explicit": true ONLY if the CURRENT message is a phrase or sentence containing grammatical words (verbs, prepositions, articles, question words) that clearly reveal a language — e.g. "où est le lait", "wo ist der Reis", "where is the milk", "dónde está la leche". false if the message is just a bare product/brand name or a few bare nouns with NO grammatical words — e.g. "Dewar's", "arroz", "mayonesa", "milk", "leche", "olive oil", "aceite de oliva", "pan".
+- "language": when is_language_explicit is true, the ISO 639-1 code (es, en, fr, de) of the language actually used — detect independently, do NOT just echo the interface language. When is_language_explicit is false, output the INTERFACE LANGUAGE code exactly as provided (the app decides; a lone noun like "milk" or "arroz" must NOT force a language).
+Examples (interface=es): "où est le lait" -> explicit=true, "fr"; "where is the milk" -> explicit=true, "en"; "arroz" -> explicit=false, "es"; "milk" -> explicit=false, "es".
+Examples (interface=en): "milk" -> explicit=false, "en"; "arroz" -> explicit=false, "en"; "wo ist der Reis" -> explicit=true, "de".
 
 SEARCH TERMS: for any intent that involves finding items in the store, list the concrete product/category terms to look up. The store database is indexed in SPANISH and ENGLISH only, so you MUST ALWAYS include both the English AND the Spanish term — even when the customer wrote in another language. Translate foreign terms.
 - English "olive oil" -> ["olive oil","aceite de oliva"]
@@ -52,6 +55,7 @@ Keep terms short and literal. For RECIPE/MEAL_IDEA/INGREDIENT_RECIPE leave searc
 Return ONLY this JSON:
 {
   "language": "es",
+  "is_language_explicit": true,
   "intent": "PRODUCT_SEARCH",
   "search_terms": ["olive oil","aceite de oliva"],
   "entities": {
@@ -89,9 +93,16 @@ async function classify(query, history = [], uiLang = "es") {
   } catch {
     parsed = {};
   }
+  // Language resolution is DETERMINISTIC in code, not left to the model:
+  // only an explicit phrase/sentence overrides the selected interface language;
+  // a bare product/brand name always keeps the interface language (fixes
+  // "milk"/"bread" in EN mode being answered in Spanish).
+  const SUPPORTED = ["es", "en", "fr", "de"];
+  const detected = SUPPORTED.includes(parsed.language) ? parsed.language : uiLang;
+  const language = parsed.is_language_explicit ? detected : uiLang;
   // defensive defaults
   return {
-    language: parsed.language || uiLang,
+    language,
     intent: INTENTS.includes(parsed.intent) ? parsed.intent : "PRODUCT_SEARCH",
     search_terms: Array.isArray(parsed.search_terms) ? parsed.search_terms.filter(Boolean) : [],
     entities: parsed.entities || {},
