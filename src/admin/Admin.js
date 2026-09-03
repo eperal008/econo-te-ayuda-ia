@@ -36,24 +36,31 @@ function Login({ onIn }) {
 }
 
 function Editor({ product, zones, onClose, onSaved }) {
+  const isNew = !product.id;
   const [f, setF] = useState(() => ({ ...product }));
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
 
   const save = async () => {
+    const payload = {
+      producto: f.producto, producto_en: f.producto_en, marca: f.marca,
+      categoria: f.categoria, categoria_en: f.categoria_en,
+      price: f.price === "" || f.price == null ? null : Number(f.price),
+      promo_text: f.promo_text, promo_text_en: f.promo_text_en, promo_price: f.promo_price,
+      inventory_status: f.inventory_status || null, image_url: f.image_url, promo_image_url: f.promo_image_url,
+      sku: f.sku, upc: f.upc,
+    };
     setBusy(true);
     try {
-      const payload = {
-        producto: f.producto, producto_en: f.producto_en, marca: f.marca,
-        price: f.price === "" || f.price == null ? null : Number(f.price),
-        promo_text: f.promo_text, promo_text_en: f.promo_text_en, promo_price: f.promo_price,
-        inventory_status: f.inventory_status || null, image_url: f.image_url, promo_image_url: f.promo_image_url,
-        sku: f.sku, upc: f.upc,
-      };
-      if (f.zone_id && f.zone_id !== product.zone_id) payload.zone_id = f.zone_id;
-      const updated = await api.updateProduct(product.id, payload);
-      onSaved(updated);
+      if (isNew) {
+        if (!f.producto || !f.zone_id) { alert("Name (ES) and aisle are required"); setBusy(false); return; }
+        payload.zone_id = f.zone_id;
+        onSaved(await api.createProduct(payload), true);
+      } else {
+        if (f.zone_id && f.zone_id !== product.zone_id) payload.zone_id = f.zone_id;
+        onSaved(await api.updateProduct(product.id, payload), false);
+      }
     } catch (e) {
       alert("Save failed: " + (e?.response?.data?.error || e.message));
     } finally { setBusy(false); }
@@ -72,15 +79,18 @@ function Editor({ product, zones, onClose, onSaved }) {
     <div className="adm-modal-bg" onClick={onClose}>
       <div className="adm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="adm-modal-head">
-          <h3>{product.producto}</h3>
+          <h3>{isNew ? "New product" : product.producto}</h3>
           <button className="adm-x" onClick={onClose}>×</button>
         </div>
         <div className="adm-grid">
-          <label>Name (ES)<input value={f.producto || ""} onChange={(e) => set("producto", e.target.value)} /></label>
-          <label>Name (EN)<input value={f.producto_en || ""} onChange={(e) => set("producto_en", e.target.value)} /></label>
+          <label>Name (ES) *<input value={f.producto || ""} onChange={(e) => set("producto", e.target.value)} placeholder="e.g. Leche entera" /></label>
+          <label>Name (EN)<input value={f.producto_en || ""} onChange={(e) => set("producto_en", e.target.value)} placeholder="e.g. Whole Milk" /></label>
+          <label>Category (ES)<input value={f.categoria || ""} onChange={(e) => set("categoria", e.target.value)} /></label>
+          <label>Category (EN)<input value={f.categoria_en || ""} onChange={(e) => set("categoria_en", e.target.value)} /></label>
           <label>Brand<input value={f.marca || ""} onChange={(e) => set("marca", e.target.value)} /></label>
-          <label>Aisle / Zone
+          <label>Aisle / Zone *
             <select value={f.zone_id || ""} onChange={(e) => set("zone_id", e.target.value)}>
+              {isNew && <option value="">Select aisle…</option>}
               {zones.map((z) => (
                 <option key={z.zone_id} value={z.zone_id}>
                   {z.zone_id} · {z.pasillo === "SIN PASILLO" ? z.departamento : "Pasillo " + z.pasillo}{z.lado ? " (" + z.lado + ")" : ""}
@@ -201,6 +211,7 @@ export default function Admin() {
             <form className="adm-search" onSubmit={(e) => { e.preventDefault(); load(search); }}>
               <input placeholder="Search products…" value={search} onChange={(e) => setSearch(e.target.value)} />
               <button className="adm-primary">Search</button>
+              <button type="button" className="adm-ghost" onClick={() => setEditing({})}>+ Add product</button>
             </form>
             {loading ? <div className="adm-empty">Loading…</div> : (
               <table className="adm-table">
@@ -231,8 +242,8 @@ export default function Admin() {
           product={editing}
           zones={zones}
           onClose={() => setEditing(null)}
-          onSaved={(upd) => {
-            setProducts((list) => list.map((x) => (x.id === upd.id ? { ...x, ...upd } : x)));
+          onSaved={(rec, isNew) => {
+            setProducts((list) => (isNew ? [rec, ...list] : list.map((x) => (x.id === rec.id ? { ...x, ...rec } : x))));
             setEditing(null);
           }}
         />

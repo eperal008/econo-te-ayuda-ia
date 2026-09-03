@@ -23,6 +23,8 @@ export const listProducts = (search = "") =>
   http.get("/products", { params: { search } }).then((r) => r.data);
 export const updateProduct = (id, fields) =>
   http.patch(`/products/${id}`, fields).then((r) => r.data);
+export const createProduct = (fields) =>
+  http.post("/products", fields).then((r) => r.data);
 export const getZones = () => http.get("/zones").then((r) => r.data);
 export const getMisses = () => http.get("/misses").then((r) => r.data);
 export const addAlias = (alias, termino_canonico, zone_id) =>

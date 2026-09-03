@@ -11,6 +11,16 @@ const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const db = require("../lib/db");
 const { normalize } = require("../lib/normalize");
+const { embedQuery } = require("../lib/locationEngine");
+
+const STORE_ID = process.env.DEFAULT_STORE_ID || "ECONO-SIERRA-BAYAMON";
+const embedText = (p) => [p.producto, p.producto_en, p.categoria, p.marca].filter(Boolean).join(" | ");
+// Fire-and-forget embedding update so admin actions never block on OpenAI latency.
+function reembed(p) {
+  embedQuery(embedText(p))
+    .then((vec) => vec && db.query("UPDATE products SET embedding=$1::vector WHERE id=$2", [vec, p.id]))
+    .catch((e) => console.warn("[admin] embed skipped for", p.id, e.message));
+}
 
 const router = express.Router();
 
@@ -74,6 +84,43 @@ router.get("/products", requireAdmin, async (req, res) => {
   }
 });
 
+// --- products: create ---
+router.post("/products", requireAdmin, async (req, res) => {
+  const b = req.body || {};
+  if (!b.producto || !b.zone_id) {
+    return res.status(400).json({ error: "Product name (ES) and aisle/zone are required" });
+  }
+  try {
+    const z = await db.query("SELECT * FROM zones WHERE store_id=$1 AND zone_id=$2", [STORE_ID, b.zone_id]);
+    if (!z.rows.length) return res.status(400).json({ error: "Unknown zone_id" });
+    const zn = z.rows[0];
+    const { rows } = await db.query(
+      `INSERT INTO products (
+         store_id, zone_id, departamento, departamento_en, macro_area, macro_area_en,
+         pasillo, pasillo_en, lado, lado_en, tramo, tramo_en, fixture, fixture_en,
+         categoria, categoria_en, producto, producto_en, marca,
+         sku, upc, price, promo_text, promo_text_en, promo_price, promo_image_url,
+         inventory_status, image_url
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
+       RETURNING *`,
+      [STORE_ID, zn.zone_id, zn.departamento, zn.departamento_en, zn.macro_area, zn.macro_area_en,
+       zn.pasillo, zn.pasillo_en, zn.lado, zn.lado_en, zn.tramo, zn.tramo_en, zn.fixture, zn.fixture_en,
+       b.categoria || null, b.categoria_en || null, b.producto, b.producto_en || null, b.marca || null,
+       b.sku || null, b.upc || null, b.price ? Number(b.price) : null, b.promo_text || null,
+       b.promo_text_en || null, b.promo_price || null, b.promo_image_url || null,
+       b.inventory_status || null, b.image_url || null]
+    );
+    const created = rows[0];
+    res.status(201).json(created);
+    // Auto-embed in the BACKGROUND (don't block the admin on OpenAI latency).
+    // The product is already findable by name; semantic search fills in shortly.
+    reembed(created);
+  } catch (e) {
+    console.error("[admin/products POST]", e.message);
+    res.status(500).json({ error: "Failed to create product" });
+  }
+});
+
 // --- products: update ---
 const EDITABLE = [
   "producto", "producto_en", "marca", "categoria", "categoria_en",
@@ -115,6 +162,8 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ error: "Product not found" });
     res.json(rows[0]);
+    // Re-embed in the background if any semantic field changed.
+    if (["producto", "producto_en", "categoria", "marca"].some((k) => req.body[k] !== undefined)) reembed(rows[0]);
   } catch (e) {
     console.error("[admin/products PATCH]", e.message);
     res.status(500).json({ error: "Failed to update product" });

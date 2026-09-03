@@ -177,7 +177,7 @@ export default function Kiosk() {
                 </div>
                 {recipe.ingredients.map((ing, i) => (
                   <div className="econo-item" key={i}>
-                    <span className="econo-item-name">{lang === "es" ? ing.name_es || ing.name_en : ing.name_en || ing.name_es}</span>
+                    <span className="econo-item-name">{lang === "es" ? (ing.name_es || ing.name_en) : lang === "en" ? (ing.name_en || ing.name_es) : (ing.name_display || ing.name_en || ing.name_es)}</span>
                     {ing.found ? (
                       <span className="econo-aisle"><FaMapMarkerAlt /> {badge(ing)}</span>
                     ) : (
@@ -192,7 +192,7 @@ export default function Kiosk() {
               <div className="econo-suggestions">
                 {products.map((p, i) => (
                   <div className="econo-item" key={i}>
-                    <span className="econo-item-name">{lang === "es" ? p.name || p.name_en : p.name_en || p.name}</span>
+                    <span className="econo-item-name">{lang === "es" ? (p.name || p.name_en) : lang === "en" ? (p.name_en || p.name) : (p.name_display || p.name_en || p.name)}</span>
                     <span className="econo-aisle"><FaMapMarkerAlt /> {badge(p)}</span>
                     {(p.promo || p.promo_price || p.promo_text) && (
                       <span className="econo-promo">{p.promo || p.promo_price || p.promo_text}</span>

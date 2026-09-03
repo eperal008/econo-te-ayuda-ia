@@ -142,6 +142,21 @@ async function verifyMatch(query, candidateName) {
   } catch { return false; }
 }
 
+// Translate product display names into a target language (we only store ES/EN
+// names). One batched call; brand names are kept as-is.
+async function translateNames(names, language) {
+  if (!names.length) return {};
+  try {
+    const raw = await llm([
+      { role: "system", content: `Translate each supermarket product name into ${language}. Keep brand names unchanged. Reply strictly as JSON: {"items":[{"i":0,"t":"..."}]}.` },
+      { role: "user", content: JSON.stringify(names.map((name, i) => ({ i, name }))) },
+    ], true, 0);
+    const map = {};
+    (JSON.parse(raw).items || []).forEach((x) => { map[x.i] = x.t; });
+    return map;
+  } catch { return {}; }
+}
+
 // ---- rich generators -------------------------------------------------------
 async function generateRecipe(query, entities, language) {
   const raw = await llm(
@@ -280,6 +295,19 @@ async function ask(query, opts = {}) {
           reply = await compose({ language, intent: router.intent, query, facts: factsBlock(shown) });
         }
       }
+    }
+  }
+
+  // Localize product/ingredient display names for non-ES/EN languages.
+  if (language !== "es" && language !== "en") {
+    const targets = [];
+    (base.products || []).forEach((p) => targets.push(p.name_en || p.name));
+    if (base.recipe) base.recipe.ingredients.forEach((i) => targets.push(i.name_en || i.name_es));
+    if (targets.length) {
+      const tmap = await translateNames(targets, language);
+      let k = 0;
+      (base.products || []).forEach((p) => { p.name_display = tmap[k] || p.name_en || p.name; k++; });
+      if (base.recipe) base.recipe.ingredients.forEach((i) => { i.name_display = tmap[k] || i.name_en || i.name_es; k++; });
     }
   }
 
