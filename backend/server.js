@@ -10,6 +10,7 @@ require("dotenv").config();
 
 const { searchLocation } = require("./lib/locationEngine");
 const { ask } = require("./lib/assistant");
+const { router: adminRouter } = require("./routes/admin");
 const db = require("./lib/db");
 
 const app = express();
@@ -17,6 +18,9 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
+
+// admin dashboard API
+app.use("/api/admin", adminRouter);
 
 // health / readiness
 app.get("/health", async (_req, res) => {
