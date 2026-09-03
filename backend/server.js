@@ -18,7 +18,19 @@ const db = require("./lib/db");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// Restrict CORS to the kiosk frontend(s). Configure extra origins via
+// ALLOWED_ORIGINS (comma-separated). Non-browser requests (no Origin) are allowed.
+const ALLOWED_ORIGINS = (
+  process.env.ALLOWED_ORIGINS ||
+  "https://frontend-production-70ca.up.railway.app,http://localhost:3005,http://localhost:3000"
+).split(",").map((s) => s.trim()).filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) =>
+    !origin || ALLOWED_ORIGINS.includes(origin)
+      ? cb(null, true)
+      : cb(new Error("Not allowed by CORS")),
+}));
 app.use(express.json({ limit: "2mb" }));
 
 // admin dashboard API
