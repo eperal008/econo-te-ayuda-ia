@@ -274,7 +274,7 @@ export default function Kiosk() {
                     {(products[0].promo_price || products[0].promo_text || products[0].price != null) && (
                       <div className="econo-promo-box">
                         <div className="econo-promo-name">{nm(products[0])}</div>
-                        {products[0].price != null && <div className="econo-promo-reg">Reg. {money(products[0].price)}</div>}
+                        {(products[0].promo_price || products[0].promo_text) && products[0].price != null && <div className="econo-promo-reg">Reg. {money(products[0].price)}</div>}
                         <div className="econo-promo-price">{products[0].promo_price || products[0].promo_text || money(products[0].price)}</div>
                       </div>
                     )}

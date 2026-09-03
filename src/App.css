@@ -151,7 +151,7 @@ body { margin: 0; }
 .econo-promo {
   background: #ffe8b3; color: #8a5a00; font-weight: 800; font-size: 13px; padding: 5px 10px; border-radius: 8px;
 }
-.econo-item-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; background: #f2f2f2; }
+.econo-item-thumb { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; background: #fff; padding: 3px; }
 
 /* ---------- rich Result Found card ---------- */
 .econo-found { background: #fff; color: var(--ink); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; }
@@ -161,7 +161,7 @@ body { margin: 0; }
 .econo-aisle.big { font-size: 15px; padding: 8px 16px; }
 .econo-shelf { display: flex; align-items: center; gap: 7px; color: #2f9e57; font-weight: 700; font-size: 14px; }
 .econo-promo-card { display: flex; gap: 12px; align-items: stretch; background: var(--econo-red); border-radius: 12px; overflow: hidden; }
-.econo-prod-img { width: 44%; max-width: 200px; object-fit: cover; background: #fff; }
+.econo-prod-img { width: 40%; max-width: 180px; min-height: 96px; object-fit: contain; background: #fff; padding: 10px; }
 .econo-promo-box { flex: 1; color: #fff; padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
 .econo-promo-name { font-weight: 800; font-size: 15px; line-height: 1.2; }
 .econo-promo-reg { font-size: 12px; opacity: .85; }
