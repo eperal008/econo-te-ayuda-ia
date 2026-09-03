@@ -131,13 +131,22 @@ async function layerCategory(qn, storeId, limit) {
   return (await db.query(sql, [storeId, qn, limit])).rows;
 }
 
-async function layerFullText(raw, storeId, limit) {
+async function layerFullText(raw, qn, storeId, limit) {
+  // Rank so the most canonical match wins: exact-name, then head-of-name match,
+  // then shorter (more canonical) names, then text rank. This makes
+  // "arroz" -> "Arroz blanco" instead of "Arroz con pollo / comidas con arroz".
   const sql = `SELECT ${SELECT_COLS}, ts_rank(p.search_tsv, plainto_tsquery('simple', f_unaccent($2))) AS rank
     ${FROM_JOIN}
     WHERE p.store_id = $1
       AND p.search_tsv @@ plainto_tsquery('simple', f_unaccent($2))
-    ORDER BY rank DESC, p.orden_fisico NULLS LAST LIMIT $3`;
-  return (await db.query(sql, [storeId, raw, limit])).rows;
+    ORDER BY
+      (${N("p.producto")} = $4 OR ${N("p.producto_en")} = $4) DESC,
+      (${N("p.producto")} LIKE $4 || ' %' OR ${N("p.producto_en")} LIKE $4 || ' %') DESC,
+      char_length(p.producto) ASC,
+      rank DESC,
+      p.orden_fisico NULLS LAST
+    LIMIT $3`;
+  return (await db.query(sql, [storeId, raw, limit, qn])).rows;
 }
 
 async function layerFuzzy(qn, storeId, limit) {
@@ -190,7 +199,7 @@ async function searchLocation(rawQuery, opts = {}) {
     ["exact", () => layerExact(qn, storeId, limit)],
     ["alias", () => layerAlias(qn, storeId, limit)],
     ["category", () => layerCategory(qn, storeId, limit)],
-    ["fulltext", () => layerFullText(raw, storeId, limit)],
+    ["fulltext", () => layerFullText(raw, qn, storeId, limit)],
     ["fuzzy", () => layerFuzzy(qn, storeId, limit)],
     ...(semantic ? [["semantic", () => layerSemantic(raw, storeId, limit)]] : []), // paid; only if all else misses
   ];
@@ -214,4 +223,4 @@ async function searchLocation(rawQuery, opts = {}) {
   return { ...base, aiFallback: true };
 }
 
-module.exports = { searchLocation, buildEs, buildEn, normalize, FUZZY_THRESHOLD };
+module.exports = { searchLocation, buildEs, buildEn, normalize, embedQuery, FUZZY_THRESHOLD };

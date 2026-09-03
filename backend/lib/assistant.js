@@ -9,7 +9,8 @@
 // come only from the location engine / DB. The AI proposes WHAT; the engine says WHERE.
 // ============================================================================
 const { classify } = require("./intentRouter");
-const { searchLocation } = require("./locationEngine");
+const { searchLocation, embedQuery } = require("./locationEngine");
+const db = require("./db");
 const { OpenAI } = require("openai");
 
 const CHAT_MODEL = "gpt-4o-mini";
@@ -40,6 +41,7 @@ async function resolveTerms(terms, { storeId, lang, semantic = true }) {
       found: r.matched,
       confidence: r.confidence,     // high | medium | low
       layer: r.layer,               // exact | alias | category | fulltext | fuzzy | semantic
+      id: r.best?.id || null,
       name: r.best?.producto || null,
       name_en: r.best?.producto_en || null,
       aisle: r.best?.pasillo || null,          // '6' | 'L2' | 'SIN PASILLO'
@@ -53,6 +55,29 @@ async function resolveTerms(terms, { storeId, lang, semantic = true }) {
     });
   }
   return out;
+}
+
+/** Re-rank candidates by semantic closeness to the query (one embedding call).
+ *  Lexical layers can't tell "milk"->Leche from "milk"->Milk-Bone, but the query
+ *  embedding is reliably closer to the correct product. Only used when there are
+ *  ≥2 candidates, so single known-term lookups stay embedding-free. */
+async function rerankBySemantic(query, candidates) {
+  const ids = candidates.map((c) => c.id).filter((x) => x != null);
+  if (ids.length < 2) return candidates;
+  let vec;
+  try { vec = await embedQuery(query); } catch { vec = null; }
+  if (!vec) return candidates;
+  try {
+    const { rows } = await db.query(
+      `SELECT id, (embedding <=> $1::vector) d FROM products
+        WHERE id = ANY($2::bigint[]) AND embedding IS NOT NULL`,
+      [vec, ids]
+    );
+    const dist = new Map(rows.map((r) => [String(r.id), Number(r.d)]));
+    return [...candidates].sort(
+      (a, b) => (dist.get(String(a.id)) ?? 9) - (dist.get(String(b.id)) ?? 9)
+    );
+  } catch { return candidates; }
 }
 
 /** Collapse duplicate resolved products (same product+zone reached via ES and EN terms). */
@@ -211,22 +236,33 @@ async function ask(query, opts = {}) {
       default: {
         // PRODUCT_SEARCH, PRODUCT_DISCOVERY, HOUSEHOLD_SOLUTION,
         // PRODUCT_ALTERNATIVE, PRODUCT_COMPARISON, STORE_INFORMATION
+        const LAYER_RANK = { exact: 0, alias: 1, category: 2, fulltext: 3, fuzzy: 4, semantic: 5 };
         const CONFIDENT = new Set(["exact", "alias", "category", "fulltext"]);
         const isProductSearch = router.intent === "PRODUCT_SEARCH";
         const terms = router.search_terms.length ? router.search_terms : [query];
         resolved = dedupeProducts(await resolveTerms(terms, { storeId, lang: language }));
-        const found = resolved.filter((r) => r.found);
-        // For a by-NAME product search: confident matches (exact/alias/category/
-        // fulltext) are trusted directly. If only a semantic/fuzzy near-match
-        // exists, verify it with a cheap LLM check — this keeps correct bridges
-        // (coriandre->cilantro) and rejects wrong ones (white rum->white rice).
-        // Discovery/household keep all semantic matches (finding-by-meaning is the point).
+        // Rank all hits by match quality so an exact term (e.g. "leche") beats a
+        // mere token match (e.g. "milk" -> "Milk-Bone").
+        const found = resolved.filter((r) => r.found)
+          .sort((a, b) => (LAYER_RANK[a.layer] ?? 9) - (LAYER_RANK[b.layer] ?? 9));
+        // For a by-NAME product search: trust confident matches (exact/alias/
+        // category/fulltext) and show only the best tier (so "milk" shows Leche,
+        // not also Milk-Bone). If only a semantic/fuzzy near-match exists, verify
+        // it with a cheap LLM check — keeps coriandre->cilantro, rejects white
+        // rum->white rice. Discovery/household keep all semantic matches.
         let shown;
         if (isProductSearch) {
-          const confident = found.filter((r) => CONFIDENT.has(r.layer));
-          if (confident.length) shown = confident;
-          else if (found.length && (await verifyMatch(query, found[0].name_en || found[0].name))) shown = [found[0]];
-          else shown = [];
+          let confident = found.filter((r) => CONFIDENT.has(r.layer));
+          if (confident.length) {
+            // Semantically re-rank the confident set so the right product leads
+            // (milk -> Leche, not Milk-Bone), then keep the top plus same-zone
+            // variants; drop cross-zone lexical false positives.
+            confident = await rerankBySemantic(query, confident);
+            const topZone = confident[0].zone_id;
+            shown = confident.filter((r, i) => i === 0 || r.zone_id === topZone);
+          } else if (found.length && (await verifyMatch(query, found[0].name_en || found[0].name))) {
+            shown = [found[0]];
+          } else shown = [];
         } else {
           shown = found;
         }
