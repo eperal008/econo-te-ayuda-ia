@@ -8,55 +8,42 @@ import { SERVICE_URLS } from "./config";
 import EconoLogo from "./econo/EconoLogo";
 import "./App.css";
 
-// --- lightweight i18n (kiosk UI chrome only; the AI replies come localized) ---
+// Four supported languages (customer requirement). Each drives UI chrome, the
+// assistant reply language, and the voice in/out language.
+const LANGS = [
+  { code: "es", label: "ES", bcp: "es-US" },
+  { code: "en", label: "EN", bcp: "en-US" },
+  { code: "fr", label: "FR", bcp: "fr-FR" },
+  { code: "de", label: "DE", bcp: "de-DE" },
+];
+
 const STRINGS = {
-  es: {
-    press: "Presiona y Pregunta",
-    example: 'Ej: "¿En qué pasillo está el arroz?"',
-    typeHere: "¿Qué producto buscas?",
-    searchAisle: "Buscar en Góndola",
-    onlineShopper: "Compra en Línea",
-    econoToGo: "Econo To Go",
-    deals: "Ofertas y Promociones",
-    listening: "Escuchando…",
-    thinking: "Buscando…",
-    aisle: "Pasillo",
-    back: "Volver",
-    ingredients: "Ingredientes",
-    notFound: "No encontrado",
-    tryAgain: "Intenta de nuevo",
-    langBtn: "English",
-    voiceUnsupported: "El micrófono no está disponible en este navegador.",
-  },
-  en: {
-    press: "Press and Ask",
-    example: 'e.g. "Which aisle is the rice in?"',
-    typeHere: "What product are you looking for?",
-    searchAisle: "Search in Aisle",
-    onlineShopper: "Online Shopper",
-    econoToGo: "Econo To Go",
-    deals: "Deals & Promotions",
-    listening: "Listening…",
-    thinking: "Searching…",
-    aisle: "Aisle",
-    back: "Back",
-    ingredients: "Ingredients",
-    notFound: "Not found",
-    tryAgain: "Try again",
-    langBtn: "Español",
-    voiceUnsupported: "Microphone isn't available in this browser.",
-  },
+  es: { press: "Presiona y Pregunta", example: 'Ej: "¿En qué pasillo está el arroz?"', typeHere: "¿Qué producto buscas?",
+    searchAisle: "Buscar en Góndola", onlineShopper: "Compra en Línea", econoToGo: "Econo To Go", deals: "Ofertas y Promociones",
+    listening: "Escuchando…", thinking: "Buscando…", aisle: "Pasillo", back: "Volver", ingredients: "Ingredientes",
+    notFound: "No encontrado", tryAgain: "Intenta de nuevo", voiceUnsupported: "El micrófono no está disponible en este navegador." },
+  en: { press: "Press and Ask", example: 'e.g. "Which aisle is the rice in?"', typeHere: "What product are you looking for?",
+    searchAisle: "Search in Aisle", onlineShopper: "Online Shopper", econoToGo: "Econo To Go", deals: "Deals & Promotions",
+    listening: "Listening…", thinking: "Searching…", aisle: "Aisle", back: "Back", ingredients: "Ingredients",
+    notFound: "Not found", tryAgain: "Try again", voiceUnsupported: "Microphone isn't available in this browser." },
+  fr: { press: "Appuyez et Demandez", example: 'Ex : "Dans quelle allée est le riz ?"', typeHere: "Quel produit cherchez-vous ?",
+    searchAisle: "Chercher en Rayon", onlineShopper: "Achat en Ligne", econoToGo: "Econo To Go", deals: "Offres & Promotions",
+    listening: "Écoute…", thinking: "Recherche…", aisle: "Allée", back: "Retour", ingredients: "Ingrédients",
+    notFound: "Introuvable", tryAgain: "Réessayez", voiceUnsupported: "Le micro n'est pas disponible dans ce navigateur." },
+  de: { press: "Drücken und Fragen", example: 'z. B. "In welchem Gang ist der Reis?"', typeHere: "Welches Produkt suchen Sie?",
+    searchAisle: "Im Gang suchen", onlineShopper: "Online-Shopper", econoToGo: "Econo To Go", deals: "Angebote & Aktionen",
+    listening: "Höre zu…", thinking: "Suche…", aisle: "Gang", back: "Zurück", ingredients: "Zutaten",
+    notFound: "Nicht gefunden", tryAgain: "Erneut versuchen", voiceUnsupported: "Mikrofon in diesem Browser nicht verfügbar." },
 };
 
-// Browser Speech Recognition (interim; Phase 6 replaces with the Google streaming pipeline)
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-function speak(text, lang) {
+function speak(text, bcp) {
   try {
     if (!window.speechSynthesis || !text) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang === "en" ? "en-US" : lang === "fr" ? "fr-FR" : "es-US";
+    u.lang = bcp || "es-US";
     window.speechSynthesis.speak(u);
   } catch { /* ignore */ }
 }
@@ -66,25 +53,26 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
-  const [result, setResult] = useState(null); // assistant response
+  const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const recognitionRef = useRef(null);
   const t = STRINGS[lang];
+  const bcp = LANGS.find((l) => l.code === lang)?.bcp || "es-US";
 
   const runQuery = useCallback(async (text) => {
     const q = (text || "").trim();
     if (!q) return;
     setLoading(true); setError(""); setResult(null);
     try {
-      const data = await askAssistant(q, { lang: null }); // backend auto-detects language
+      const data = await askAssistant(q, { lang }); // selected language is authoritative
       setResult(data);
-      speak(data.reply, data.language || lang);
+      speak(data.reply, bcp);
     } catch (e) {
       setError(t.tryAgain);
     } finally {
       setLoading(false);
     }
-  }, [lang, t]);
+  }, [lang, bcp, t]);
 
   const onSubmit = (e) => { e.preventDefault(); runQuery(query); };
 
@@ -92,7 +80,7 @@ export default function App() {
     if (!SpeechRecognition) { setError(t.voiceUnsupported); return; }
     if (listening) { recognitionRef.current?.stop(); return; }
     const rec = new SpeechRecognition();
-    rec.lang = lang === "en" ? "en-US" : "es-US";
+    rec.lang = bcp;
     rec.interimResults = true;
     rec.continuous = false;
     recognitionRef.current = rec;
@@ -109,12 +97,22 @@ export default function App() {
     rec.onerror = () => { setListening(false); };
     rec.onend = () => { setListening(false); if (finalText.trim()) runQuery(finalText); };
     rec.start();
-  }, [listening, lang, t, runQuery]);
+  }, [listening, bcp, t, runQuery]);
 
   useEffect(() => () => { window.speechSynthesis?.cancel(); recognitionRef.current?.stop?.(); }, []);
 
-  const changeLang = () => { setLang((l) => (l === "es" ? "en" : "es")); setResult(null); setQuery(""); };
   const reset = () => { setResult(null); setQuery(""); setError(""); window.speechSynthesis?.cancel(); };
+  const pickLang = (code) => { setLang(code); reset(); };
+
+  // Badge label: numbered aisle -> "Aisle N"; liquor code -> "area + code";
+  // no-aisle special zone -> the department/area name (never "Pasillo SIN PASILLO").
+  const badge = (item) => {
+    const p = String(item.aisle || "").trim();
+    const area = (lang === "es" ? item.area : item.area_en) || item.area_en || item.area;
+    if (/^\d+$/.test(p)) return `${t.aisle} ${p}`;
+    if (/^[a-z]\d+$/i.test(p)) return area ? `${area} ${p}` : `${t.aisle} ${p}`;
+    return area || t.notFound; // SIN PASILLO
+  };
 
   const hasResult = !!result || loading || listening || error;
   const products = result?.products || [];
@@ -124,16 +122,22 @@ export default function App() {
     <div className="econo-app">
       <header className="econo-header">
         {hasResult && (
-          <button className="econo-back" onClick={reset} aria-label={t.back}>
-            <FaArrowLeft />
-          </button>
+          <button className="econo-back" onClick={reset} aria-label={t.back}><FaArrowLeft /></button>
         )}
         <EconoLogo variant="onRed" />
-        <button className="econo-lang" onClick={changeLang}>{t.langBtn}</button>
+        <div className="econo-langs" role="group" aria-label="Language">
+          {LANGS.map((l) => (
+            <button
+              key={l.code}
+              className={`econo-lang ${lang === l.code ? "active" : ""}`}
+              onClick={() => pickLang(l.code)}
+              aria-pressed={lang === l.code}
+            >{l.label}</button>
+          ))}
+        </div>
       </header>
 
       <main className="econo-main">
-        {/* Mic */}
         <button
           className={`econo-mic ${listening ? "listening" : ""} ${loading ? "busy" : ""}`}
           onClick={toggleMic}
@@ -146,7 +150,6 @@ export default function App() {
           <span>{t.example}</span>
         </div>
 
-        {/* Search bar with camera */}
         <form className="econo-search" onSubmit={onSubmit}>
           <input
             value={query}
@@ -154,15 +157,10 @@ export default function App() {
             placeholder={t.typeHere}
             disabled={loading || listening}
           />
-          <button type="button" className="econo-cam" title="Camera (Phase 6)" aria-label="Camera">
-            <FaCamera />
-          </button>
-          <button type="submit" className="econo-go" disabled={loading || listening || !query.trim()}>
-            <FaSearch />
-          </button>
+          <button type="button" className="econo-cam" title="Camera (Phase 6)" aria-label="Camera"><FaCamera /></button>
+          <button type="submit" className="econo-go" disabled={loading || listening || !query.trim()}><FaSearch /></button>
         </form>
 
-        {/* Result area */}
         {(loading || listening) && (
           <div className="econo-status">{listening ? t.listening : t.thinking}</div>
         )}
@@ -179,9 +177,9 @@ export default function App() {
                 </div>
                 {recipe.ingredients.map((ing, i) => (
                   <div className="econo-item" key={i}>
-                    <span className="econo-item-name">{lang === "en" ? ing.name_en || ing.name_es : ing.name_es || ing.name_en}</span>
+                    <span className="econo-item-name">{lang === "es" ? ing.name_es || ing.name_en : ing.name_en || ing.name_es}</span>
                     {ing.found ? (
-                      <span className="econo-aisle"><FaMapMarkerAlt /> {t.aisle} {ing.aisle}</span>
+                      <span className="econo-aisle"><FaMapMarkerAlt /> {badge(ing)}</span>
                     ) : (
                       <span className="econo-aisle muted">{t.notFound}</span>
                     )}
@@ -194,10 +192,10 @@ export default function App() {
               <div className="econo-suggestions">
                 {products.map((p, i) => (
                   <div className="econo-item" key={i}>
-                    <span className="econo-item-name">{lang === "en" ? p.name_en || p.name : p.name}</span>
-                    <span className="econo-aisle"><FaMapMarkerAlt /> {t.aisle} {p.aisle}</span>
-                    {(p.promo_text || p.promo_price) && (
-                      <span className="econo-promo">{p.promo_price || p.promo_text}</span>
+                    <span className="econo-item-name">{lang === "es" ? p.name || p.name_en : p.name_en || p.name}</span>
+                    <span className="econo-aisle"><FaMapMarkerAlt /> {badge(p)}</span>
+                    {(p.promo || p.promo_price || p.promo_text) && (
+                      <span className="econo-promo">{p.promo || p.promo_price || p.promo_text}</span>
                     )}
                   </div>
                 ))}
@@ -206,7 +204,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Action grid */}
         <div className="econo-grid">
           <button className="econo-tile" onClick={() => document.querySelector(".econo-search input")?.focus()}>
             <FaTag /><span>{t.searchAisle}</span>
@@ -222,9 +219,7 @@ export default function App() {
           </a>
         </div>
 
-        <button className="econo-qr" title="Scan (Phase 6 / TBD)" aria-label="QR scanner">
-          <FaQrcode />
-        </button>
+        <button className="econo-qr" title="Scan (Phase 6 / TBD)" aria-label="QR scanner"><FaQrcode /></button>
       </main>
     </div>
   );

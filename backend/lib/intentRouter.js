@@ -40,7 +40,12 @@ INTENTS: ${INTENTS.join(", ")}.
 
 LANGUAGE: detect the language of the CURRENT message and return its ISO 639-1 code (es, en, fr, de, pt, ...). Follow the user's most recent language.
 
-SEARCH TERMS: for any intent that involves finding items in the store, list the concrete product/category terms to look up, in BOTH the user's language and Spanish when possible (the store data is Spanish-first). Keep them short and literal (e.g. "olive oil", "aceite de oliva"). For RECIPE/MEAL_IDEA/INGREDIENT_RECIPE leave search_terms empty (ingredients are resolved later).
+SEARCH TERMS: for any intent that involves finding items in the store, list the concrete product/category terms to look up. The store database is indexed in SPANISH and ENGLISH only, so you MUST ALWAYS include both the English AND the Spanish term — even when the customer wrote in another language. Translate foreign terms.
+- English "olive oil" -> ["olive oil","aceite de oliva"]
+- French "savon à vaisselle" -> ["dish soap","jabón para platos","lavaplatos"]
+- German "Reis" -> ["rice","arroz"]
+- Spanish "leche" -> ["leche","milk"]
+Keep terms short and literal. For RECIPE/MEAL_IDEA/INGREDIENT_RECIPE leave search_terms empty (ingredients are resolved later).
 
 Return ONLY this JSON:
 {

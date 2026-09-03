@@ -38,10 +38,14 @@ async function resolveTerms(terms, { storeId, lang, semantic = true }) {
     out.push({
       term: t,
       found: r.matched,
-      confidence: r.confidence,
+      confidence: r.confidence,     // high | medium | low
+      layer: r.layer,               // exact | alias | category | fulltext | fuzzy | semantic
       name: r.best?.producto || null,
       name_en: r.best?.producto_en || null,
-      aisle: r.best?.pasillo || null,
+      aisle: r.best?.pasillo || null,          // '6' | 'L2' | 'SIN PASILLO'
+      side_en: r.best?.lado_en || null,
+      area: r.best?.departamento || null,      // for badge on no-aisle zones
+      area_en: r.best?.departamento_en || null,
       zone_id: r.best?.zone_id || null,
       location: r.best?.response || null,
       price: r.best?.price ?? null,
@@ -62,15 +66,20 @@ function dedupeProducts(list) {
   });
 }
 
-/** Ground-truth "facts" string handed to the composer. */
+/** Ground-truth facts handed to the composer as RAW components (English labels),
+ *  so it can build the sentence fully in the target language without copying
+ *  English words like "Aisle"/"side". */
 function factsBlock(resolved) {
   if (!resolved.length) return "No store items were resolved.";
   return resolved
-    .map((r) =>
-      r.found
-        ? `- "${r.term}" -> ${r.name}${r.name_en ? " / " + r.name_en : ""} | ${r.location?.es || ""} | ${r.location?.en || ""}${r.price != null ? " | price " + r.price : ""}${r.promo ? " | promo " + r.promo : ""}`
-        : `- "${r.term}" -> NOT FOUND in this store`
-    )
+    .map((r) => {
+      if (!r.found) return `- "${r.term}" -> NOT FOUND in this store`;
+      const p = String(r.aisle || "").trim();
+      const aisleNumber = /^\d+$/.test(p) || /^[a-z]\d+$/i.test(p) ? p : "none";
+      const side = (r.side_en || "").toLowerCase() || "none";
+      return `- "${r.term}" -> name=${r.name_en || r.name}; aisleNumber=${aisleNumber}; side=${side}; area=${r.area_en || r.area || "none"}` +
+        `${r.price != null ? "; price=" + r.price : ""}${r.promo ? "; promo=" + r.promo : ""}`;
+    })
     .join("\n");
 }
 
@@ -82,13 +91,29 @@ async function compose({ language, intent, query, facts, extra = "" }) {
       content:
         `Customer intent: ${intent}\nCustomer said: "${query}"\n\n` +
         `VERIFIED STORE DATA — the ONLY source of product names, locations and prices:\n${facts}\n${extra}\n\n` +
+        `Each item gives raw components: name, aisleNumber, side, area. Build a natural location sentence from them.\n` +
         `Rules:\n` +
-        `- Use ONLY the product names, aisles and prices exactly as written above. Do NOT rename a product, invent a product, or change any aisle/price.\n` +
-        `- If an item is NOT FOUND, say it wasn't found and suggest asking an associate — do not guess a location.\n` +
-        `- Reply in ${language}, 1-3 short sentences, plain text.`,
+        `- Use ONLY these products/aisles/prices. Do NOT invent or rename anything.\n` +
+        `- Write EVERYTHING in ${language}. Translate the words for "aisle", "side", "left/right/center", and area/department names into ${language}. ONLY the aisleNumber value itself (e.g. 6, L2) stays verbatim.\n` +
+        `- If aisleNumber is "none", give the location using the area (a special zone like produce/dairy/freezer/liquor), not an aisle number.\n` +
+        `- If an item is NOT FOUND, say so in ${language} and suggest asking an associate — never guess a location or substitute an unrelated product.\n` +
+        `- 1-3 short sentences, plain text, no English words unless they are brand/product names.`,
     },
   ], false, 0.2);
   return reply.trim();
+}
+
+// Verify a semantic/fuzzy fallback match for a by-name product search.
+// Distances can't separate "coriandre→cilantro" (right) from "ron blanco→arroz"
+// (wrong), but a cheap yes/no LLM check can.
+async function verifyMatch(query, candidateName) {
+  try {
+    const raw = await llm([
+      { role: "system", content: 'You verify supermarket product-search matches. Reply strictly as JSON {"match": true|false}.' },
+      { role: "user", content: `A customer searched for "${query}". The store's closest product is "${candidateName}". Is this the same item (or a clear form/translation of it)? Answer false if it is a different product (e.g. rum vs rice, soap vs soup).` },
+    ], true, 0);
+    return !!JSON.parse(raw).match;
+  } catch { return false; }
 }
 
 // ---- rich generators -------------------------------------------------------
@@ -152,12 +177,13 @@ async function ask(query, opts = {}) {
             return {
               name_es: ing.name_es, name_en: ing.name_en, have: !!ing.have,
               found: !!hit, aisle: hit?.aisle || null, zone_id: hit?.zone_id || null,
-              location: hit?.location || null,
+              area: hit?.area || null, area_en: hit?.area_en || null, location: hit?.location || null,
             };
           });
           base.recipe = recipe;
           base.products = recipe.ingredients.filter((i) => i.found).map((i) => ({
-            name: i.name_es, name_en: i.name_en, aisle: i.aisle, zone_id: i.zone_id, location: i.location,
+            name: i.name_es, name_en: i.name_en, aisle: i.aisle, zone_id: i.zone_id,
+            area: i.area, area_en: i.area_en, location: i.location,
           }));
           // Spoken reply = the recipe's own sentence (no LLM-narrated locations);
           // the structured ingredient list carries the accurate aisles for the UI.
@@ -185,17 +211,36 @@ async function ask(query, opts = {}) {
       default: {
         // PRODUCT_SEARCH, PRODUCT_DISCOVERY, HOUSEHOLD_SOLUTION,
         // PRODUCT_ALTERNATIVE, PRODUCT_COMPARISON, STORE_INFORMATION
-        const terms = router.search_terms.length ? router.search_terms
-          : [query];
+        const CONFIDENT = new Set(["exact", "alias", "category", "fulltext"]);
+        const isProductSearch = router.intent === "PRODUCT_SEARCH";
+        const terms = router.search_terms.length ? router.search_terms : [query];
         resolved = dedupeProducts(await resolveTerms(terms, { storeId, lang: language }));
-        base.products = resolved.filter((r) => r.found);
-
-        // Fast path: simple product search, EN/ES, found -> use the engine answer directly (no extra LLM).
-        const firstFound = resolved.find((r) => r.found);
-        if (router.intent === "PRODUCT_SEARCH" && (language === "es" || language === "en") && firstFound && resolved.length === 1) {
-          reply = firstFound.location[language] || firstFound.location.es;
+        const found = resolved.filter((r) => r.found);
+        // For a by-NAME product search: confident matches (exact/alias/category/
+        // fulltext) are trusted directly. If only a semantic/fuzzy near-match
+        // exists, verify it with a cheap LLM check — this keeps correct bridges
+        // (coriandre->cilantro) and rejects wrong ones (white rum->white rice).
+        // Discovery/household keep all semantic matches (finding-by-meaning is the point).
+        let shown;
+        if (isProductSearch) {
+          const confident = found.filter((r) => CONFIDENT.has(r.layer));
+          if (confident.length) shown = confident;
+          else if (found.length && (await verifyMatch(query, found[0].name_en || found[0].name))) shown = [found[0]];
+          else shown = [];
         } else {
-          reply = await compose({ language, intent: router.intent, query, facts: factsBlock(resolved) });
+          shown = found;
+        }
+        base.products = shown;
+
+        if (isProductSearch && shown.length === 0) {
+          reply = await compose({ language, intent: router.intent, query,
+            facts: `- "${query}" -> NOT FOUND in this store`,
+            extra: "Tell the customer this item was not found and to ask an associate. Do not guess a location or suggest an unrelated product." });
+        } else if (isProductSearch && (language === "es" || language === "en")) {
+          // fast path: grounded engine answer, no extra LLM
+          reply = shown[0].location[language] || shown[0].location.es;
+        } else {
+          reply = await compose({ language, intent: router.intent, query, facts: factsBlock(shown) });
         }
       }
     }
