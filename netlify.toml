@@ -1,0 +1,13 @@
+# Netlify config for the Econo Te Ayuda IA kiosk (React frontend).
+[build]
+  command = "npm run build"
+  publish = "build"
+
+# SPA fallback so client-side routes (e.g. /admin) resolve to index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Set REACT_APP_API_BASE_URL in the Netlify UI (Site settings -> Environment)
+# to the deployed backend URL, e.g. https://your-store-kiosk-api-XXXX.herokuapp.com
