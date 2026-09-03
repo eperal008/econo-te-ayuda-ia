@@ -38,3 +38,21 @@ export async function searchLocation(query, { lang } = {}) {
   });
   return data;
 }
+
+/** Google TTS: returns a playable data URL for the spoken reply. */
+export async function textToSpeech(text, lang) {
+  const { data } = await http.post("/api/tts", { text, lang });
+  return `data:audio/${data.format};base64,${data.audio}`;
+}
+
+/** Google STT: base64 WEBM/OPUS audio -> transcript. */
+export async function speechToText(audioBase64, lang) {
+  const { data } = await http.post("/api/stt", { audio: audioBase64, lang });
+  return data.transcript || "";
+}
+
+/** Photo search: identify the product in an image, then locate it. */
+export async function identifyFromImage(imageBase64, lang) {
+  const { data } = await http.post("/api/vision", { image: imageBase64, lang });
+  return data; // { identified, matched, reply, products, ... }
+}

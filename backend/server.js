@@ -10,6 +10,8 @@ require("dotenv").config();
 
 const { searchLocation } = require("./lib/locationEngine");
 const { ask } = require("./lib/assistant");
+const { textToSpeech, speechToText } = require("./lib/voice");
+const { identifyProduct } = require("./lib/vision");
 const { router: adminRouter } = require("./routes/admin");
 const db = require("./lib/db");
 
@@ -102,6 +104,51 @@ app.post("/api/assistant", async (req, res) => {
   } catch (e) {
     console.error("[/api/assistant]", e.message);
     res.status(500).json({ error: "assistant failed" });
+  }
+});
+
+// --- voice: text-to-speech (Google, multilingual) ---
+app.post("/api/tts", async (req, res) => {
+  const { text, lang } = req.body || {};
+  if (!text) return res.status(400).json({ error: "Missing 'text'" });
+  try {
+    res.json(await textToSpeech(text, lang === "en" ? "en" : lang === "fr" ? "fr" : lang === "de" ? "de" : "es"));
+  } catch (e) {
+    console.error("[/api/tts]", e.message);
+    res.status(500).json({ error: "TTS failed" });
+  }
+});
+
+// --- voice: speech-to-text (Google) ---
+app.post("/api/stt", async (req, res) => {
+  const { audio, lang } = req.body || {};
+  if (!audio) return res.status(400).json({ error: "Missing 'audio'" });
+  try {
+    const transcript = await speechToText(audio, lang || "es");
+    res.json({ transcript });
+  } catch (e) {
+    console.error("[/api/stt]", e.message);
+    res.status(500).json({ error: "STT failed" });
+  }
+});
+
+// --- camera / photo search: identify the product, then locate it ---
+app.post("/api/vision", async (req, res) => {
+  const { image, lang } = req.body || {};
+  if (!image) return res.status(400).json({ error: "Missing 'image'" });
+  const language = lang === "en" ? "en" : lang === "fr" ? "fr" : lang === "de" ? "de" : "es";
+  try {
+    const id = await identifyProduct(image, language);
+    if (!id.found || !(id.name_es || id.name_en)) {
+      return res.json({ identified: null, matched: false, reply: null });
+    }
+    // Resolve the identified product through the normal assistant pipeline.
+    const query = language === "en" ? (id.name_en || id.name_es) : (id.name_es || id.name_en);
+    const result = await ask(query, { lang: language });
+    res.json({ identified: { name_es: id.name_es, name_en: id.name_en }, ...result });
+  } catch (e) {
+    console.error("[/api/vision]", e.message);
+    res.status(500).json({ error: "vision failed" });
   }
 });
 

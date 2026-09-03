@@ -3,7 +3,7 @@ import {
   FaMicrophone, FaStopCircle, FaSearch, FaCamera, FaTag,
   FaShoppingCart, FaStore, FaPercent, FaQrcode, FaArrowLeft, FaMapMarkerAlt,
 } from "react-icons/fa";
-import { askAssistant } from "./econo/api";
+import { askAssistant, textToSpeech, speechToText, identifyFromImage } from "./econo/api";
 import { SERVICE_URLS } from "./config";
 import EconoLogo from "./econo/EconoLogo";
 import "./App.css";
@@ -21,32 +21,35 @@ const STRINGS = {
   es: { press: "Presiona y Pregunta", example: 'Ej: "¿En qué pasillo está el arroz?"', typeHere: "¿Qué producto buscas?",
     searchAisle: "Buscar en Góndola", onlineShopper: "Compra en Línea", econoToGo: "Econo To Go", deals: "Ofertas y Promociones",
     listening: "Escuchando…", thinking: "Buscando…", aisle: "Pasillo", back: "Volver", ingredients: "Ingredientes",
-    notFound: "No encontrado", tryAgain: "Intenta de nuevo", voiceUnsupported: "El micrófono no está disponible en este navegador." },
+    notFound: "No encontrado", tryAgain: "Intenta de nuevo", voiceUnsupported: "El micrófono no está disponible en este navegador.",
+    analyzing: "Analizando foto…", noProduct: "No pude identificar el producto. Intenta con otra foto.", identified: "Veo" },
   en: { press: "Press and Ask", example: 'e.g. "Which aisle is the rice in?"', typeHere: "What product are you looking for?",
     searchAisle: "Search in Aisle", onlineShopper: "Online Shopper", econoToGo: "Econo To Go", deals: "Deals & Promotions",
     listening: "Listening…", thinking: "Searching…", aisle: "Aisle", back: "Back", ingredients: "Ingredients",
-    notFound: "Not found", tryAgain: "Try again", voiceUnsupported: "Microphone isn't available in this browser." },
+    notFound: "Not found", tryAgain: "Try again", voiceUnsupported: "Microphone isn't available in this browser.",
+    analyzing: "Analyzing photo…", noProduct: "I couldn't identify the product. Try another photo.", identified: "I see" },
   fr: { press: "Appuyez et Demandez", example: 'Ex : "Dans quelle allée est le riz ?"', typeHere: "Quel produit cherchez-vous ?",
     searchAisle: "Chercher en Rayon", onlineShopper: "Achat en Ligne", econoToGo: "Econo To Go", deals: "Offres & Promotions",
     listening: "Écoute…", thinking: "Recherche…", aisle: "Allée", back: "Retour", ingredients: "Ingrédients",
-    notFound: "Introuvable", tryAgain: "Réessayez", voiceUnsupported: "Le micro n'est pas disponible dans ce navigateur." },
+    notFound: "Introuvable", tryAgain: "Réessayez", voiceUnsupported: "Le micro n'est pas disponible dans ce navigateur.",
+    analyzing: "Analyse de la photo…", noProduct: "Je n'ai pas pu identifier le produit. Essayez une autre photo.", identified: "Je vois" },
   de: { press: "Drücken und Fragen", example: 'z. B. "In welchem Gang ist der Reis?"', typeHere: "Welches Produkt suchen Sie?",
     searchAisle: "Im Gang suchen", onlineShopper: "Online-Shopper", econoToGo: "Econo To Go", deals: "Angebote & Aktionen",
     listening: "Höre zu…", thinking: "Suche…", aisle: "Gang", back: "Zurück", ingredients: "Zutaten",
-    notFound: "Nicht gefunden", tryAgain: "Erneut versuchen", voiceUnsupported: "Mikrofon in diesem Browser nicht verfügbar." },
+    notFound: "Nicht gefunden", tryAgain: "Erneut versuchen", voiceUnsupported: "Mikrofon in diesem Browser nicht verfügbar.",
+    analyzing: "Foto wird analysiert…", noProduct: "Produkt nicht erkannt. Bitte anderes Foto versuchen.", identified: "Ich sehe" },
 };
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-function speak(text, bcp) {
-  try {
-    if (!window.speechSynthesis || !text) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = bcp || "es-US";
-    window.speechSynthesis.speak(u);
-  } catch { /* ignore */ }
-}
+const MIME = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"].find(
+  (m) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(m)
+);
+const blobToBase64 = (blob) =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onloadend = () => resolve(String(r.result).split(",")[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
 
 export default function Kiosk() {
   const [lang, setLang] = useState("es");
@@ -55,9 +58,29 @@ export default function Kiosk() {
   const [listening, setListening] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
+  const chunksRef = useRef([]);
+  const audioRef = useRef(null);
+  const fileInputRef = useRef(null);
   const t = STRINGS[lang];
-  const bcp = LANGS.find((l) => l.code === lang)?.bcp || "es-US";
+
+  const stopAudio = useCallback(() => {
+    try { audioRef.current?.pause(); } catch {}
+    audioRef.current = null;
+  }, []);
+
+  // Speak the reply with Google TTS (natural multilingual voice).
+  const speak = useCallback(async (text) => {
+    stopAudio();
+    if (!text) return;
+    try {
+      const url = await textToSpeech(text, lang);
+      const a = new Audio(url);
+      audioRef.current = a;
+      a.play().catch(() => {});
+    } catch { /* ignore TTS errors */ }
+  }, [lang, stopAudio]);
 
   const runQuery = useCallback(async (text) => {
     const q = (text || "").trim();
@@ -66,42 +89,74 @@ export default function Kiosk() {
     try {
       const data = await askAssistant(q, { lang }); // selected language is authoritative
       setResult(data);
-      speak(data.reply, bcp);
+      speak(data.reply);
     } catch (e) {
       setError(t.tryAgain);
     } finally {
       setLoading(false);
     }
-  }, [lang, bcp, t]);
+  }, [lang, t, speak]);
 
   const onSubmit = (e) => { e.preventDefault(); runQuery(query); };
 
-  const toggleMic = useCallback(() => {
-    if (!SpeechRecognition) { setError(t.voiceUnsupported); return; }
-    if (listening) { recognitionRef.current?.stop(); return; }
-    const rec = new SpeechRecognition();
-    rec.lang = bcp;
-    rec.interimResults = true;
-    rec.continuous = false;
-    recognitionRef.current = rec;
-    let finalText = "";
-    rec.onstart = () => { setListening(true); setError(""); setResult(null); };
-    rec.onresult = (ev) => {
-      let interim = "";
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        const seg = ev.results[i][0].transcript;
-        if (ev.results[i].isFinal) finalText += seg; else interim += seg;
-      }
-      setQuery(finalText || interim);
-    };
-    rec.onerror = () => { setListening(false); };
-    rec.onend = () => { setListening(false); if (finalText.trim()) runQuery(finalText); };
-    rec.start();
-  }, [listening, bcp, t, runQuery]);
+  // Voice input: record (MediaRecorder) -> Google STT -> run the query.
+  const toggleMic = useCallback(async () => {
+    if (listening) { try { mediaRecorderRef.current?.stop(); } catch {} return; }
+    if (typeof MediaRecorder === "undefined" || !MIME || !navigator.mediaDevices?.getUserMedia) {
+      setError(t.voiceUnsupported); return;
+    }
+    stopAudio();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { noiseSuppression: true, echoCancellation: true } });
+      streamRef.current = stream;
+      const mr = new MediaRecorder(stream, { mimeType: MIME });
+      mediaRecorderRef.current = mr;
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
+      mr.onstop = async () => {
+        setListening(false);
+        streamRef.current?.getTracks().forEach((tr) => tr.stop());
+        streamRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: MIME });
+        if (!blob.size) return;
+        setLoading(true);
+        try {
+          const transcript = await speechToText(await blobToBase64(blob), lang);
+          if (transcript) { setQuery(transcript); await runQuery(transcript); }
+          else { setLoading(false); setError(t.tryAgain); }
+        } catch { setLoading(false); setError(t.tryAgain); }
+      };
+      mr.start();
+      setListening(true); setError(""); setResult(null);
+    } catch { setError(t.voiceUnsupported); }
+  }, [listening, lang, t, runQuery, stopAudio]);
 
-  useEffect(() => () => { window.speechSynthesis?.cancel(); recognitionRef.current?.stop?.(); }, []);
+  useEffect(() => () => {
+    stopAudio();
+    try { mediaRecorderRef.current?.stop?.(); } catch {}
+    streamRef.current?.getTracks?.().forEach((tr) => tr.stop());
+  }, [stopAudio]);
 
-  const reset = () => { setResult(null); setQuery(""); setError(""); window.speechSynthesis?.cancel(); };
+  // Photo search: identify the product in a photo, then locate it.
+  const onPhoto = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    stopAudio();
+    setError(""); setResult(null); setQuery(""); setLoading(true);
+    try {
+      const b64 = await blobToBase64(file);
+      const data = await identifyFromImage(b64, lang);
+      if (!data || !data.identified) { setError(t.noProduct); return; }
+      const seen = lang === "es" ? data.identified.name_es : data.identified.name_en;
+      setQuery(seen || "");
+      setResult(data);
+      speak(data.reply);
+    } catch { setError(t.tryAgain); }
+    finally { setLoading(false); }
+  }, [lang, t, speak, stopAudio]);
+
+  const reset = () => { setResult(null); setQuery(""); setError(""); stopAudio(); };
   const pickLang = (code) => { setLang(code); reset(); };
 
   // Badge label: numbered aisle -> "Aisle N"; liquor code -> "area + code";
@@ -157,7 +212,8 @@ export default function Kiosk() {
             placeholder={t.typeHere}
             disabled={loading || listening}
           />
-          <button type="button" className="econo-cam" title="Camera (Phase 6)" aria-label="Camera"><FaCamera /></button>
+          <button type="button" className="econo-cam" onClick={() => fileInputRef.current?.click()} disabled={loading || listening} aria-label="Camera"><FaCamera /></button>
+          <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={onPhoto} style={{ display: "none" }} />
           <button type="submit" className="econo-go" disabled={loading || listening || !query.trim()}><FaSearch /></button>
         </form>
 
