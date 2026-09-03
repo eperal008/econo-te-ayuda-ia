@@ -26,12 +26,13 @@ const db = require("../lib/db");
 
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry");
+const WEAK = args.includes("--weak"); // second pass: only imageless products, try ALL "/" segments (ES+EN)
 const LIMIT = (() => { const i = args.indexOf("--limit"); return i >= 0 ? parseInt(args[i + 1], 10) : 0; })();
 const STORE = (() => { const i = args.indexOf("--store"); return i >= 0 ? args[i + 1] : "econo-manati"; })();
 const BASE = `https://${STORE.replace(/^econo-/, "")}.econotogo.com`; // premium subdomain, e.g. manati.econotogo.com
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36";
 const DELAY_MS = 180;
-const REPORT = path.join(process.env.TEMP || "/tmp", `econo_images_report_${STORE}.json`);
+const REPORT = path.join(process.env.TEMP || "/tmp", `econo_images_report${WEAK ? "_weak" : ""}_${STORE}.json`);
 
 // ---------- session (CSRF + cookies) ----------
 const jar = {};
@@ -134,13 +135,24 @@ function queriesFor(p) {
   return qs.filter((q) => q && q.length >= 2 && !seen.has(q.toLowerCase()) && seen.add(q.toLowerCase()));
 }
 
+// second-pass query list: EVERY "/" segment of the ES and EN names (the alternate
+// segment is often the findable term — "Mapos / Mops", "Snacks salados / chips"),
+// plus the brand. Same strict match gate, so this only ADDS correct matches.
+function queriesForWeak(p) {
+  const segs = [];
+  for (const src of [p.producto, p.producto_en]) (src || "").split("/").forEach((s) => segs.push(s.trim()));
+  if (p.marca && p.marca.trim()) segs.push(p.marca.trim());
+  const seen = new Set();
+  return segs.filter((q) => q && q.length >= 2 && !seen.has(q.toLowerCase()) && seen.add(q.toLowerCase()));
+}
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   await prime();
   console.log(`[img] session ready on ${BASE} — crawling…`);
 
-  let sql = `SELECT id, producto, producto_en, marca FROM products ORDER BY ${args.includes("--random") ? "random()" : "id"}`;
+  let sql = `SELECT id, producto, producto_en, marca FROM products ${WEAK ? "WHERE image_url IS NULL" : ""} ORDER BY ${args.includes("--random") ? "random()" : "id"}`;
   if (LIMIT) sql += ` LIMIT ${LIMIT}`;
   const { rows: products } = await db.query(sql);
   console.log(`[img] ${products.length} products to process (dry=${DRY})`);
@@ -150,7 +162,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   for (const p of products) {
     i++;
     let picked = null, usedQuery = null;
-    for (const q of queriesFor(p)) {
+    for (const q of (WEAK ? queriesForWeak(p) : queriesFor(p))) {
       let rows;
       try { rows = await search(q); } catch (e) { await prime(); rows = await search(q).catch(() => []); }
       await sleep(DELAY_MS);
