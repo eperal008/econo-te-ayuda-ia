@@ -29,6 +29,12 @@ export const getZones = () => http.get("/zones").then((r) => r.data);
 export const getMisses = () => http.get("/misses").then((r) => r.data);
 export const addAlias = (alias, termino_canonico, zone_id) =>
   http.post("/aliases", { alias, termino_canonico, zone_id }).then((r) => r.data);
+// deals (kiosk "Deals & Promotions" tab)
+export const listDeals = () => http.get("/deals").then((r) => r.data);
+export const createDeal = (fields) => http.post("/deals", fields).then((r) => r.data);
+export const updateDeal = (id, fields) => http.patch(`/deals/${id}`, fields).then((r) => r.data);
+export const deleteDeal = (id) => http.delete(`/deals/${id}`).then((r) => r.data);
+
 export const uploadImage = (file) => {
   const fd = new FormData();
   fd.append("image", file);

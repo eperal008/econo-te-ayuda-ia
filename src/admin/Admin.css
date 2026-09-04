@@ -70,4 +70,11 @@ button.sm { padding: 6px 12px; font-size: 13px; }
 .adm-img img { max-width: 120px; border-radius: 8px; margin: 4px 0; display: block; }
 .adm-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--line); }
 
+.adm-grid textarea { padding: 9px 11px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; color: var(--ink); font-family: inherit; resize: vertical; }
+.adm-span2 { grid-column: 1 / -1; }
+.adm-check { flex-direction: row !important; align-items: center; gap: 8px !important; color: var(--ink) !important; font-weight: 600; }
+.adm-check input { width: auto; }
+.adm-deal-preview { max-width: 150px; max-height: 96px; object-fit: contain; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; background: #fff; padding: 4px; }
+.adm-row-off { opacity: 0.5; }
+
 @media (max-width: 560px) { .adm-grid { grid-template-columns: 1fr; } .adm-header { flex-wrap: wrap; gap: 10px; } }

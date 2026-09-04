@@ -51,6 +51,12 @@ export async function speechToText(audioBase64, lang) {
   return data.transcript || "";
 }
 
+/** Active deals for the "Deals & Promotions" tab. */
+export async function getDeals() {
+  const { data } = await withRetry(() => http.get("/api/deals"));
+  return data; // [{ id, title, description, description_en, price, image_url }]
+}
+
 /** Photo search: identify the product in an image, then locate it. */
 export async function identifyFromImage(imageBase64, lang) {
   const { data } = await http.post("/api/vision", { image: imageBase64, lang });

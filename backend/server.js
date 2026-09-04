@@ -164,4 +164,17 @@ app.post("/api/vision", async (req, res) => {
   }
 });
 
+// --- public: active deals for the kiosk "Deals & Promotions" tab ---
+app.get("/api/deals", async (_req, res) => {
+  try {
+    const { rows } = await db.query(
+      "SELECT id, title, description, description_en, price, image_url FROM deals WHERE active=true ORDER BY sort_order, created_at DESC"
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error("[/api/deals]", e.message);
+    res.status(500).json({ error: "Failed to load deals" });
+  }
+});
+
 app.listen(PORT, () => console.log(`Econo backend listening on :${PORT}`));

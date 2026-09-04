@@ -225,4 +225,50 @@ router.post("/aliases", requireAdmin, async (req, res) => {
   }
 });
 
+// --- deals (kiosk "Deals & Promotions" tab): image + description + price ---
+router.get("/deals", requireAdmin, async (_req, res) => {
+  try {
+    const { rows } = await db.query("SELECT * FROM deals ORDER BY sort_order, created_at DESC");
+    res.json(rows);
+  } catch (e) { console.error("[admin/deals GET]", e.message); res.status(500).json({ error: "Failed to load deals" }); }
+});
+
+router.post("/deals", requireAdmin, async (req, res) => {
+  const b = req.body || {};
+  if (!b.description || !String(b.description).trim()) return res.status(400).json({ error: "Description is required" });
+  try {
+    const { rows } = await db.query(
+      `INSERT INTO deals (title, description, description_en, price, image_url, active, sort_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [b.title || null, b.description, b.description_en || null, b.price || null, b.image_url || null,
+       b.active === undefined ? true : !!b.active, Number.isFinite(+b.sort_order) ? +b.sort_order : 0]
+    );
+    res.status(201).json(rows[0]);
+  } catch (e) { console.error("[admin/deals POST]", e.message); res.status(500).json({ error: "Failed to create deal" }); }
+});
+
+const DEAL_EDITABLE = ["title", "description", "description_en", "price", "image_url", "active", "sort_order"];
+router.patch("/deals/:id", requireAdmin, async (req, res) => {
+  try {
+    const sets = [], params = [req.params.id];
+    for (const col of DEAL_EDITABLE) if (req.body[col] !== undefined) {
+      params.push(col === "active" ? !!req.body[col] : (req.body[col] === "" ? null : req.body[col]));
+      sets.push(`${col}=$${params.length}`);
+    }
+    if (!sets.length) return res.status(400).json({ error: "No fields to update" });
+    sets.push("updated_at=now()");
+    const { rows } = await db.query(`UPDATE deals SET ${sets.join(", ")} WHERE id=$1 RETURNING *`, params);
+    if (!rows.length) return res.status(404).json({ error: "Deal not found" });
+    res.json(rows[0]);
+  } catch (e) { console.error("[admin/deals PATCH]", e.message); res.status(500).json({ error: "Failed to update deal" }); }
+});
+
+router.delete("/deals/:id", requireAdmin, async (req, res) => {
+  try {
+    const { rowCount } = await db.query("DELETE FROM deals WHERE id=$1", [req.params.id]);
+    if (!rowCount) return res.status(404).json({ error: "Deal not found" });
+    res.json({ ok: true });
+  } catch (e) { console.error("[admin/deals DELETE]", e.message); res.status(500).json({ error: "Failed to delete deal" }); }
+});
+
 module.exports = { router, requireAdmin };

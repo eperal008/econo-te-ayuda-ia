@@ -3,7 +3,7 @@ import {
   FaMicrophone, FaStopCircle, FaSearch, FaCamera, FaTag,
   FaShoppingCart, FaStore, FaPercent, FaQrcode, FaArrowLeft, FaMapMarkerAlt,
 } from "react-icons/fa";
-import { askAssistant, textToSpeech, speechToText, identifyFromImage } from "./econo/api";
+import { askAssistant, textToSpeech, speechToText, identifyFromImage, getDeals } from "./econo/api";
 import { SERVICE_URLS } from "./config";
 import EconoLogo from "./econo/EconoLogo";
 import "./App.css";
@@ -22,22 +22,26 @@ const STRINGS = {
     searchAisle: "Buscar en Góndola", onlineShopper: "Compra en Línea", econoToGo: "Econo To Go", deals: "Ofertas y Promociones",
     listening: "Escuchando…", thinking: "Buscando…", aisle: "Pasillo", back: "Volver", ingredients: "Ingredientes",
     notFound: "No encontrado", tryAgain: "Intenta de nuevo", voiceUnsupported: "El micrófono no está disponible en este navegador.",
-    analyzing: "Analizando foto…", noProduct: "No pude identificar el producto. Intenta con otra foto.", identified: "Veo" },
+    analyzing: "Analizando foto…", noProduct: "No pude identificar el producto. Intenta con otra foto.", identified: "Veo",
+    dealsEmpty: "No hay ofertas en este momento." },
   en: { press: "Press and Ask", example: 'e.g. "Which aisle is the rice in?"', typeHere: "What product are you looking for?",
     searchAisle: "Search in Aisle", onlineShopper: "Online Shopper", econoToGo: "Econo To Go", deals: "Deals & Promotions",
     listening: "Listening…", thinking: "Searching…", aisle: "Aisle", back: "Back", ingredients: "Ingredients",
     notFound: "Not found", tryAgain: "Try again", voiceUnsupported: "Microphone isn't available in this browser.",
-    analyzing: "Analyzing photo…", noProduct: "I couldn't identify the product. Try another photo.", identified: "I see" },
+    analyzing: "Analyzing photo…", noProduct: "I couldn't identify the product. Try another photo.", identified: "I see",
+    dealsEmpty: "No deals available right now." },
   fr: { press: "Appuyez et Demandez", example: 'Ex : "Dans quelle allée est le riz ?"', typeHere: "Quel produit cherchez-vous ?",
     searchAisle: "Chercher en Rayon", onlineShopper: "Achat en Ligne", econoToGo: "Econo To Go", deals: "Offres & Promotions",
     listening: "Écoute…", thinking: "Recherche…", aisle: "Allée", back: "Retour", ingredients: "Ingrédients",
     notFound: "Introuvable", tryAgain: "Réessayez", voiceUnsupported: "Le micro n'est pas disponible dans ce navigateur.",
-    analyzing: "Analyse de la photo…", noProduct: "Je n'ai pas pu identifier le produit. Essayez une autre photo.", identified: "Je vois" },
+    analyzing: "Analyse de la photo…", noProduct: "Je n'ai pas pu identifier le produit. Essayez une autre photo.", identified: "Je vois",
+    dealsEmpty: "Aucune offre pour le moment." },
   de: { press: "Drücken und Fragen", example: 'z. B. "In welchem Gang ist der Reis?"', typeHere: "Welches Produkt suchen Sie?",
     searchAisle: "Im Gang suchen", onlineShopper: "Online-Shopper", econoToGo: "Econo To Go", deals: "Angebote & Aktionen",
     listening: "Höre zu…", thinking: "Suche…", aisle: "Gang", back: "Zurück", ingredients: "Zutaten",
     notFound: "Nicht gefunden", tryAgain: "Erneut versuchen", voiceUnsupported: "Mikrofon in diesem Browser nicht verfügbar.",
-    analyzing: "Foto wird analysiert…", noProduct: "Produkt nicht erkannt. Bitte anderes Foto versuchen.", identified: "Ich sehe" },
+    analyzing: "Foto wird analysiert…", noProduct: "Produkt nicht erkannt. Bitte anderes Foto versuchen.", identified: "Ich sehe",
+    dealsEmpty: "Derzeit keine Angebote." },
 };
 
 const MIME = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"].find(
@@ -58,6 +62,9 @@ export default function Kiosk() {
   const [listening, setListening] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [view, setView] = useState("home");     // "home" | "deals"
+  const [deals, setDeals] = useState(null);
+  const [dealsLoading, setDealsLoading] = useState(false);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
@@ -156,8 +163,16 @@ export default function Kiosk() {
     finally { setLoading(false); }
   }, [lang, t, speak, stopAudio]);
 
-  const reset = () => { setResult(null); setQuery(""); setError(""); stopAudio(); };
+  const reset = () => { setResult(null); setQuery(""); setError(""); stopAudio(); setView("home"); };
   const pickLang = (code) => { setLang(code); reset(); };
+
+  // Deals tab: fetch the admin-managed one-shot deals and show them in-kiosk.
+  const openDeals = useCallback(async () => {
+    stopAudio();
+    setResult(null); setError(""); setView("deals"); setDealsLoading(true);
+    try { setDeals(await getDeals()); } catch { setDeals([]); } finally { setDealsLoading(false); }
+  }, [stopAudio]);
+  const dealDesc = (d) => (lang === "es" ? d.description : (d.description_en || d.description));
 
   const hasResult = !!result || loading || listening || error;
   const products = result?.products || [];
@@ -190,7 +205,7 @@ export default function Kiosk() {
   return (
     <div className="econo-app">
       <header className="econo-header">
-        {hasResult && (
+        {(hasResult || view === "deals") && (
           <button className="econo-back" onClick={reset} aria-label={t.back}><FaArrowLeft /></button>
         )}
         <EconoLogo variant="onRed" />
@@ -207,6 +222,28 @@ export default function Kiosk() {
       </header>
 
       <main className="econo-main">
+        {view === "deals" ? (
+          <div className="econo-deals">
+            <div className="econo-deals-head"><FaPercent /> {t.deals}</div>
+            {dealsLoading ? (
+              <div className="econo-status">{t.thinking}</div>
+            ) : !deals || !deals.length ? (
+              <div className="econo-deals-empty">{t.dealsEmpty}</div>
+            ) : (
+              deals.map((d) => (
+                <div className="econo-deal" key={d.id}>
+                  {d.image_url && <img className="econo-deal-img" src={d.image_url} alt="" />}
+                  <div className="econo-deal-body">
+                    {d.title && <div className="econo-deal-title">{d.title}</div>}
+                    <div className="econo-deal-desc">{dealDesc(d)}</div>
+                    {d.price && <div className="econo-deal-price">{d.price}</div>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+        <>
         <button
           className={`econo-mic ${listening ? "listening" : ""} ${loading ? "busy" : ""}`}
           onClick={toggleMic}
@@ -311,12 +348,14 @@ export default function Kiosk() {
           <a className="econo-tile" href={SERVICE_URLS.econoToGo} target="_blank" rel="noopener noreferrer">
             <FaStore /><span>{t.econoToGo}</span>
           </a>
-          <a className="econo-tile" href={SERVICE_URLS.deals} target="_blank" rel="noopener noreferrer">
+          <button className="econo-tile" onClick={openDeals}>
             <FaPercent /><span>{t.deals}</span>
-          </a>
+          </button>
         </div>
 
         <button className="econo-qr" title="Scan (Phase 6 / TBD)" aria-label="QR scanner"><FaQrcode /></button>
+        </>
+        )}
       </main>
     </div>
   );

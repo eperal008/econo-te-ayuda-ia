@@ -165,6 +165,107 @@ function Misses({ zones }) {
   );
 }
 
+function DealEditor({ deal, onClose, onSaved }) {
+  const isNew = !deal.id;
+  const [f, setF] = useState(() => ({ active: true, ...deal }));
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
+  const onFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try { set("image_url", await api.uploadImage(file)); } catch { alert("Image upload failed"); }
+    finally { setUploading(false); }
+  };
+  const save = async () => {
+    if (!f.description || !f.description.trim()) { alert("Description is required"); return; }
+    setBusy(true);
+    try {
+      const rec = isNew ? await api.createDeal(f) : await api.updateDeal(deal.id, f);
+      onSaved(rec, isNew);
+    } catch { alert("Failed to save deal"); } finally { setBusy(false); }
+  };
+  return (
+    <div className="adm-modal-bg" onClick={onClose}>
+      <div className="adm-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="adm-modal-head">
+          <h3>{isNew ? "New deal" : "Edit deal"}</h3>
+          <button className="adm-x" onClick={onClose}>×</button>
+        </div>
+        <div className="adm-grid">
+          <label className="adm-span2">Image
+            <input type="file" accept="image/*" onChange={onFile} />
+            {uploading && <span className="adm-muted"> uploading…</span>}
+            {f.image_url && <img className="adm-deal-preview" src={f.image_url} alt="" />}
+          </label>
+          <label>Title<input value={f.title || ""} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Oferta de la semana" /></label>
+          <label>Price<input value={f.price || ""} onChange={(e) => set("price", e.target.value)} placeholder='e.g. $2.99 or 2/$5' /></label>
+          <label className="adm-span2">Description (ES) *<textarea rows="2" value={f.description || ""} onChange={(e) => set("description", e.target.value)} placeholder="e.g. Coca-Cola 2L a precio especial" /></label>
+          <label className="adm-span2">Description (EN)<textarea rows="2" value={f.description_en || ""} onChange={(e) => set("description_en", e.target.value)} placeholder="e.g. Coca-Cola 2L special price" /></label>
+          <label>Sort order<input type="number" value={f.sort_order ?? 0} onChange={(e) => set("sort_order", e.target.value)} /></label>
+          <label className="adm-check"><input type="checkbox" checked={!!f.active} onChange={(e) => set("active", e.target.checked)} /> Active (visible in kiosk)</label>
+        </div>
+        <div className="adm-modal-foot">
+          <button className="adm-ghost" onClick={onClose}>Cancel</button>
+          <button className="adm-primary" onClick={save} disabled={busy || uploading}>{busy ? "Saving…" : "Save"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Deals() {
+  const [deals, setDeals] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const load = useCallback(() => {
+    setLoading(true);
+    api.listDeals().then(setDeals).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  const remove = async (d) => {
+    if (!window.confirm("Delete this deal?")) return;
+    try { await api.deleteDeal(d.id); setDeals((l) => l.filter((x) => x.id !== d.id)); } catch { alert("Failed to delete"); }
+  };
+  const toggle = async (d) => {
+    try { const rec = await api.updateDeal(d.id, { active: !d.active }); setDeals((l) => l.map((x) => (x.id === rec.id ? rec : x))); } catch { alert("Failed"); }
+  };
+  return (
+    <>
+      <div className="adm-search">
+        <div className="adm-muted">One-shot deals shown in the kiosk “Deals & Promotions” tab.</div>
+        <button type="button" className="adm-ghost" onClick={() => setEditing({})}>+ Add deal</button>
+      </div>
+      {loading ? <div className="adm-empty">Loading…</div> : !deals.length ? (
+        <div className="adm-empty">No deals yet. Add one to show it in the kiosk.</div>
+      ) : (
+        <table className="adm-table">
+          <thead><tr><th>Image</th><th>Title / Description</th><th>Price</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {deals.map((d) => (
+              <tr key={d.id} className={d.active ? "" : "adm-row-off"}>
+                <td>{d.image_url ? <img className="adm-thumb" src={d.image_url} alt="" /> : <span className="adm-muted">—</span>}</td>
+                <td>{d.title && <b>{d.title}</b>}<div>{d.description}</div>{d.description_en && <div className="adm-muted">{d.description_en}</div>}</td>
+                <td>{d.price || <span className="adm-muted">—</span>}</td>
+                <td><button className="adm-ghost sm" onClick={() => toggle(d)}>{d.active ? "Active" : "Hidden"}</button></td>
+                <td><button className="adm-ghost sm" onClick={() => setEditing(d)}>Edit</button> <button className="adm-ghost sm" onClick={() => remove(d)}>Delete</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {editing && (
+        <DealEditor
+          deal={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(rec, isNew) => { setDeals((l) => (isNew ? [rec, ...l] : l.map((x) => (x.id === rec.id ? rec : x)))); setEditing(null); }}
+        />
+      )}
+    </>
+  );
+}
+
 export default function Admin() {
   const [authed, setAuthed] = useState(!!api.getToken());
   const [tab, setTab] = useState("products");
@@ -197,6 +298,7 @@ export default function Admin() {
         <div className="adm-brand">ECONO <span>Admin</span></div>
         <nav>
           <button className={tab === "products" ? "on" : ""} onClick={() => setTab("products")}>Products</button>
+          <button className={tab === "deals" ? "on" : ""} onClick={() => setTab("deals")}>Deals</button>
           <button className={tab === "misses" ? "on" : ""} onClick={() => setTab("misses")}>Search misses</button>
         </nav>
         <div className="adm-header-right">
@@ -234,6 +336,7 @@ export default function Admin() {
             )}
           </>
         )}
+        {tab === "deals" && <Deals />}
         {tab === "misses" && <Misses zones={zones} />}
       </main>
 

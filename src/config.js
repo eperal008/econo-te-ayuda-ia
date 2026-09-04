@@ -5,11 +5,10 @@ export const API_BASE_URL =
 export const STORE_ID =
   process.env.REACT_APP_STORE_ID || "ECONO-SIERRA-BAYAMON";
 
-// External services shown on the home grid.
-// TODO(customer): replace the placeholder URLs with Econo's real destinations,
-// and define what the QR scanner should do.
+// External services shown on the home grid (customer-provided destinations).
+// "deals" is now an in-kiosk tab backed by the admin Deals manager, not a link.
+// TODO(customer): define what the QR scanner should do.
 export const SERVICE_URLS = {
-  onlineShopper: process.env.REACT_APP_URL_ONLINE_SHOPPER || "https://www.econo.com.pr/",
-  econoToGo: process.env.REACT_APP_URL_ECONO_TO_GO || "https://www.econo.com.pr/",
-  deals: process.env.REACT_APP_URL_DEALS || "https://www.econo.com.pr/especiales/",
+  onlineShopper: process.env.REACT_APP_URL_ONLINE_SHOPPER || "https://www.superecono.com/shopper/",
+  econoToGo: process.env.REACT_APP_URL_ECONO_TO_GO || "https://sierrabayamon.econotogo.com",
 };
