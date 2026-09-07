@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   FaMicrophone, FaStopCircle, FaSearch, FaCamera, FaTag,
-  FaShoppingCart, FaStore, FaPercent, FaQrcode, FaArrowLeft, FaMapMarkerAlt,
+  FaShoppingCart, FaStore, FaPercent, FaArrowLeft, FaMapMarkerAlt,
 } from "react-icons/fa";
 import { askAssistant, textToSpeech, speechToText, identifyFromImage, getDeals } from "./econo/api";
 import { SERVICE_URLS } from "./config";
@@ -353,7 +353,6 @@ export default function Kiosk() {
           </button>
         </div>
 
-        <button className="econo-qr" title="Scan (Phase 6 / TBD)" aria-label="QR scanner"><FaQrcode /></button>
         </>
         )}
       </main>
